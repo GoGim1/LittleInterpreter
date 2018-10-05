@@ -16,7 +16,7 @@ namespace Lexer
         enum Type
         {
             INTEGER, FLOAT, IDENTIFIER, 
-            OPERATOR, EQUAL, ASSIGN, PLUS, SUB, MUL, DIV, 
+            OPERATOR, EQUAL, ASSIGN, PLUS, SUB, MUL, DIV, GE, LE, LBRACE, RBRACE, SEMICOLON, LBRACKET, RBRACKET,
             RESERVED, IF, WHILE, ELSE, VAR,
             UNKNOWN
         };

@@ -15,13 +15,18 @@ TEST(Lexer, Basic)
     ASSERT_EQ(NextToken().type, Token::Type::IDENTIFIER);
     ASSERT_EQ(NextToken().type, Token::Type::ASSIGN);
     ASSERT_EQ(NextToken().type, Token::Type::INTEGER);
-    ASSERT_EQ(NextToken().type, Token::Type::OPERATOR);
+    ASSERT_EQ(NextToken().type, Token::Type::SEMICOLON);
     ASSERT_EQ(NextToken().type, Token::Type::IF);
-    ASSERT_EQ(NextToken().type, Token::Type::OPERATOR);
+    ASSERT_EQ(NextToken().type, Token::Type::LBRACKET);
     ASSERT_EQ(NextToken().type, Token::Type::IDENTIFIER);
     ASSERT_EQ(NextToken().type, Token::Type::EQUAL);
     ASSERT_EQ(NextToken().type, Token::Type::FLOAT);
-    
-    
+    ASSERT_EQ(NextToken().type, Token::Type::RBRACKET);
+    ASSERT_EQ(NextToken().type, Token::Type::LBRACE);
+    ASSERT_EQ(NextToken().type, Token::Type::IDENTIFIER);
+    ASSERT_EQ(NextToken().type, Token::Type::ASSIGN);
+    ASSERT_EQ(NextToken().type, Token::Type::INTEGER);
+    ASSERT_EQ(NextToken().type, Token::Type::SEMICOLON);
+    ASSERT_EQ(NextToken().type, Token::Type::RBRACE);
     
 }
