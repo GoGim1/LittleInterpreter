@@ -16,11 +16,11 @@ namespace Util
     class Error : public exception
     {
     public: 
-        Error(string s, int l = -1) : msg(s), errorLine(l) 
+        Error(string s, int x = -1, int y = -1) : msg(s), posX(x) , posY(y)
         {
-            if (errorLine != -1)
+            if (posY != -1)
             {
-                string ret("Line " + std::to_string(errorLine) + ": " + msg.c_str());
+                string ret("Line " + std::to_string(posY) + ", " + std::to_string(posX) + ": "  + msg.c_str());
                 //std::cout << ret.c_str() << std::endl;
                 msg = ret.c_str();
             }
@@ -33,7 +33,8 @@ namespace Util
         }
 
         string      msg;
-        int         errorLine;
+        int         posX;
+        int         posY;
         
     };
 };

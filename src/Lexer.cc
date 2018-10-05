@@ -34,12 +34,12 @@ namespace Lexer
     }
 
 
-    void AddToken(string s, int l)
+    void AddToken(string s, int x, int y)
     {
         auto t = reservedTable.find(s);
         if (t != reservedTable.end())   
         {
-            tokenList.push_back({t->second, s, l});     
+            tokenList.push_back({t->second, s, x, y});     
             return;
         }
 
@@ -47,14 +47,14 @@ namespace Lexer
         {
             std::size_t found = s.find('.');
             if (found!=std::string::npos)
-                tokenList.push_back({Token::Type::FLOAT, s, l});
+                tokenList.push_back({Token::Type::FLOAT, s, x, y});
             else
-                tokenList.push_back({Token::Type::INTEGER, s, l});            
+                tokenList.push_back({Token::Type::INTEGER, s, x, y});            
         }
         else if (isalpha(s[0]))
-            tokenList.push_back({Token::Type::IDENTIFIER, s, l});
+            tokenList.push_back({Token::Type::IDENTIFIER, s, x, y});
         else
-            errorToken.push_back({Token::Type::UNKNOWN, s, l});
+            errorToken.push_back({Token::Type::UNKNOWN, s, x, y});
         
     }
 
@@ -87,7 +87,7 @@ namespace Lexer
         {
             for(auto& i : errorToken)
             {
-                std::cerr << "[Line " << i.lineNum << "]: Unknown token \"" << i.value << "\"." << std::endl;
+                std::cerr << "[Line " << i.posY << ", " << i.posX << "]: Unknown token \"" << i.value << "\"." << std::endl;
             }
         }
         throw Error("Unknown token.");
@@ -102,6 +102,7 @@ namespace Lexer
         string      buf;
 
         if (!file.is_open()) throw Error("File is not open correctly.");
+        
         InitReservedTable();
         while (getline(file, buf))
         {
@@ -111,7 +112,7 @@ namespace Lexer
             for (std::sregex_iterator i = words_begin; i != words_end; ++i) 
             {
                //std::cout << i->str() << std::endl;
-                AddToken(i->str(), lineNum);
+                AddToken(i->str(), i->position(), lineNum);
             }
         }
         file.close();

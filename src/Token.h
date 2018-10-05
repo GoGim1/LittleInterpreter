@@ -24,17 +24,18 @@ namespace Lexer
     public:
         typedef unique_ptr<Token> Ptr;
 
-        Token(Type t = Type::UNKNOWN, string v = "", int n = -1): type(t), value(v), lineNum(n) {}
+        Token(Type t = Type::UNKNOWN, string v = "", int x = -1, int y = -1): type(t), value(v), posX(x) ,posY(y) {}
 
 
         // (DEBUG)
         void Dump()
         {
-            std::cout << type << " " << value << " " << lineNum << std::endl;
+            std::cout << type << " " << value << " " << posY << ", "<< posX << std::endl;
         }
 
         Type        type;
         string      value;
-        int         lineNum;
+        int         posX;
+        int         posY;
     };
 };
