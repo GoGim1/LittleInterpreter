@@ -17,20 +17,27 @@ namespace Lexer
     using std::exception;
     using std::list;
     
-    list<Token> tokenList;
-    list<Token> errorToken;
+    list<Token> tokenList;      
+    list<Token> errorToken;     
     std::unordered_map<string, Token::Type> reservedTable;
+
 
     Token NextToken()
     {   
-        Token ret = tokenList.front();
-        tokenList.pop_front();
-        return ret;
+        if (!tokenList.empty())
+        {
+            Token ret = tokenList.front();
+            tokenList.pop_front();
+            return ret;
+        }
+        return Token(Token::Type::_EOF);
     }
 
     Token PeekToken()
     {
-        return tokenList.front();
+        if (!tokenList.empty())
+            return tokenList.front();
+        return Token(Token::Type::_EOF);
     }
 
 

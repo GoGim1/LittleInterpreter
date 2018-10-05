@@ -28,5 +28,5 @@ TEST(Lexer, Basic)
     ASSERT_EQ(NextToken().type, Token::Type::INTEGER);
     ASSERT_EQ(NextToken().type, Token::Type::SEMICOLON);
     ASSERT_EQ(NextToken().type, Token::Type::RBRACE);
-    
+    ASSERT_EQ(NextToken().type, Token::Type::_EOF);
 }
