@@ -32,6 +32,8 @@ namespace Util
            return msg.c_str();
         }
 
+    private:
+
         string      msg;
         int         posX;
         int         posY;

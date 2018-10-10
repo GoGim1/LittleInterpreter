@@ -22,17 +22,47 @@ namespace Lexer
         };
     
     public:
-        typedef unique_ptr<Token> Ptr;
-
         Token(Type t = Type::UNKNOWN, string v = "", int x = -1, int y = -1): type(t), value(v), posX(x) ,posY(y) {}
-
-
-        // (DEBUG)
-        void Dump()
+       
+        Token(const Token& rhs): type(rhs.type), value(rhs.value), posX(rhs.posX), posY(rhs.posY) {}
+       
+        Token& operator=(const Token& rhs) 
         {
-            std::cout << type << " " << value << " " << posY << ", "<< posX << std::endl;
+            type = rhs.type;
+            value = rhs.value;
+            posX = rhs.posX;
+            posY = rhs.posY;
+
+            return *this;
         }
 
+        // (DEBUG)
+        string Dump()
+        {
+           // std::cout << type << " " << value << " " << posY << ", "<< posX << std::endl;
+            return value;
+        }
+
+        Token::Type getType() const
+        {
+            return type;
+        }
+
+        const string& getValue() const
+        {
+            return value;
+        }
+
+        const int getPosX() const
+        {
+            return posX;
+        }
+
+        const int getPosY() const
+        {
+            return posY;
+        }
+    private:
         Type        type;
         string      value;
         int         posX;

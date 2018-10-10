@@ -22,7 +22,7 @@ namespace Lexer
     std::unordered_map<string, Token::Type> reservedTable;
 
 
-    Token NextToken()
+    Token NextToken() 
     {   
         if (!tokenList.empty())
         {
@@ -33,7 +33,7 @@ namespace Lexer
         return Token(Token::Type::_EOF);
     }
 
-    Token PeekToken()
+    Token PeekToken() 
     {
         if (!tokenList.empty())
             return tokenList.front();
@@ -94,7 +94,8 @@ namespace Lexer
         {
             for(auto& i : errorToken)
             {
-                std::cerr << "[Line " << i.posY << ", " << i.posX << "]: Unknown token \"" << i.value << "\"." << std::endl;
+                std::cerr << "[Line " << i.getPosY() << ", " << i.getPosX() 
+                            << "]: Unknown token \"" << i.getValue() << "\"." << std::endl;
             }
         }
         throw Error("Unknown token.");

@@ -6,3 +6,18 @@ add_executable(Lexer_Test
                 LexerTest.cc 
                 ../src/Lexer.cc)
 target_link_libraries(Lexer_Test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+
+
+add_executable(Ast_Test 
+                AstTest.cc 
+                ../src/Ast.cc)
+target_link_libraries(Ast_Test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+
+
+add_executable(Parser_Test 
+                ../src/Lexer.cc
+                ../src/Ast.cc
+                ../src/Parser.cc
+                ParserTest.cc 
+                )
+target_link_libraries(Parser_Test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
