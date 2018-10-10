@@ -22,7 +22,7 @@ namespace Lexer
         };
     
     public:
-        Token(Type t = Type::UNKNOWN, string v = "", int x = -1, int y = -1): type(t), value(v), posX(x) ,posY(y) {}
+        Token(Type t = UNKNOWN, string v = "", int x = -1, int y = -1): type(t), value(v), posX(x) ,posY(y) {}
        
         Token(const Token& rhs): type(rhs.type), value(rhs.value), posX(rhs.posX), posY(rhs.posY) {}
        

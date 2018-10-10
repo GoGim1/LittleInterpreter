@@ -6,6 +6,7 @@
 #include <utility>
 #include "Ast.h"
 
+
 namespace Ast
 {
     using std::stringstream;
@@ -39,22 +40,24 @@ namespace Ast
         return ret.str();  
     }
 
-    void ExprNode::ListHandler(TokenPtr pTokenRhs, FactorPtr pFactorRhs)
+    void ExprNode::ListHandler(const TokenPtr& pTokenRhs, const FactorPtr& pFactorRhs)
     {
-        factorList.push_back(make_pair((TokenPtr)std::move(pTokenRhs), (FactorPtr)pFactor));
+        factorList.push_back(make_pair((TokenPtr)pTokenRhs, (FactorPtr)pFactorRhs));
     }
+
+
         
     string BlockNode::Dump() const
     {
         stringstream ret;
-        ret << "{" << pStatement ? "" : pStatement->Dump();
+        ret << "{" << (pStatement ? pStatement->Dump():"");
         for (auto& i : statementList)
-            ret << ";" << (i ? "" : i->Dump());
+            ret << ";" << (i ? i->Dump() : "");
         ret << "}";
         return ret.str();
     }
 
-    void BlockNode::ListHandler(StatementPtr pStatementRhs)
+    void BlockNode::ListHandler(const StatementPtr& pStatementRhs)
     {
         statementList.push_back(pStatementRhs);
     }
@@ -71,13 +74,13 @@ namespace Ast
         switch (type)
         {
             case IF: 
-                ret << "if" << pExpr->Dump() << pBlock->Dump();
+                ret << "if " << pExpr->Dump() << pBlock->Dump();
                 break;
             case IFELSE: 
-                ret << "if" << pExpr->Dump() << pBlock->Dump() << "else" << pBlockOfElse->Dump();
+                ret << "if " << pExpr->Dump() << pBlock->Dump() << "else " << pBlockOfElse->Dump();
                 break;                
             case WHILE:            
-                ret << "while" << pExpr->Dump() << pBlock->Dump();
+                ret << "while " << pExpr->Dump() << pBlock->Dump();
                 break;
             case SIMPLE: 
                 ret << pSimple->Dump();
@@ -90,7 +93,14 @@ namespace Ast
     string ProgramNode::Dump() const
     {
         stringstream ret;
-        ret << (pStatement ? "" : pStatement->Dump());
+        for (auto& i : statementList)
+            ret << (i ? i->Dump() : "") << ";";
         return ret.str();
     }
+
+    void ProgramNode::ListHandler(const StatementPtr& pStatementRhs)
+    {
+        statementList.push_back(pStatementRhs);
+    }
+    
 }

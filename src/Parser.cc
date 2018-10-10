@@ -1,6 +1,9 @@
+// TODO: 后半部分不见，EOF提前出现的错误处理
+
 #include <memory>
 #include "Parser.h"
 #include "Lexer.h"
+#include "Helper.h"
 
 namespace Parser
 {
@@ -14,16 +17,16 @@ namespace Parser
     {
         auto t = NextToken();
 
-        if (t.getType() == Token::Type::LBRACKET)
+        if (t.getType() == Token::LBRACKET)
         {
             //TODO: PrimaryPtr
-            PrimaryPtr ret = make_shared<PrimaryNode>(ParseExpr(), nullptr);
+            PrimaryPtr ret = MakePrimaryPtr(ParseExpr(), nullptr);
             NextToken();
             return ret;
         }                     
-        else if (t.getType() == Token::Type::IDENTIFIER || t.getType() == Token::Type::FLOAT ||t.getType() == Token::Type::INTEGER)
+        else if (t.getType() == Token::IDENTIFIER || t.getType() == Token::FLOAT ||t.getType() == Token::INTEGER)
         {
-            auto ret = make_shared<PrimaryNode>(nullptr, make_unique<Token>(t));
+            auto ret = MakePrimaryPtr(nullptr, MakeTokenPtr(t));
             return ret;
         }    
 
@@ -34,21 +37,21 @@ namespace Parser
     FactorPtr Parser::ParseFactor()
     {
         auto t = NextToken();
-        if (t.getType() == Token::Type::SUB)
-            return make_shared<FactorNode>(ParsePrimary(), make_unique<Token>(t));
+        if (t.getType() == Token::SUB)
+            return MakeFactorPtr(ParsePrimary(), MakeTokenPtr(t));
         else 
-            return make_shared<FactorNode>(ParsePrimary(), nullptr);
+            return MakeFactorPtr(ParsePrimary(), nullptr);
     }
 
     ExprPtr Parser::ParseExpr()
     {
-        auto ret = make_shared<ExprNode>(ParseFactor(), ExprNode::List());
-        while (PeekToken().getType() == Token::Type::PLUS||
-                PeekToken().getType() == Token::Type::SUB ||
-                PeekToken().getType() == Token::Type::MUL ||
-                PeekToken().getType() == Token::Type::DIV)
+        auto ret = MakeExprPtr(ParseFactor());
+        while (PeekToken().getType() == Token::PLUS||
+                PeekToken().getType() == Token::SUB ||
+                PeekToken().getType() == Token::MUL ||
+                PeekToken().getType() == Token::DIV)
         {
-           ret->ListHandler(make_unique<Token>(NextToken()), ParseFactor());
+           ret->ListHandler(MakeTokenPtr(NextToken()), ParseFactor());
         }
         return ret;
     }
@@ -59,43 +62,43 @@ namespace Parser
         auto peek = PeekToken();
 
         // {}
-        if (peek.getType() == Token::Type::RBRACE)
+        if (peek.getType() == Token::RBRACE)
         {
             NextToken();
-            return make_shared<BlockNode>(nullptr, BlockNode::List());
+            return MakeBlockPtr(nullptr);
         }
         // {[statement]}  {[statement]{(;|EOF)[statement]}} {[statement]{(;|EOF)}} {{(;|EOF)[statement]}}  {{(;|EOF)}}
         else 
         {
             // {[statement]}  {[statement]{(;|EOF)[statement]}}  {[statement]{(;|EOF)}}
-            if (peek.getType() != Token::Type::SEMICOLON && peek.getType() != Token::Type::_EOF)
+            if (peek.getType() != Token::SEMICOLON && peek.getType() != Token::_EOF)
             {
-                auto ret = make_shared<BlockNode>(ParseStatement(), BlockNode::List());
+                auto ret = MakeBlockPtr(ParseStatement());
                 auto peek2 = PeekToken();
                 
                 // {[statement]}  
-                if (peek2.getType() == Token::Type::RBRACE)
+                if (peek2.getType() == Token::RBRACE)
                 {
                     NextToken();
                     return ret;
                 }    
                 
                 // {[statement]{(;|EOF)[statement]}} {[statement]{(;|EOF)}}
-                else if (peek2.getType() == Token::Type::SEMICOLON || peek2.getType() == Token::Type::_EOF)
+                else if (peek2.getType() == Token::SEMICOLON || peek2.getType() == Token::_EOF)
                 {
                     auto peek3 = PeekToken();
-                    while (peek3.getType() == Token::Type::SEMICOLON || peek3.getType() == Token::Type::_EOF)
+                    while (peek3.getType() == Token::SEMICOLON || peek3.getType() == Token::_EOF)
                     {
                         NextToken();
                         peek3 = PeekToken();
 
                         // {[statement]{(;|EOF)}}
-                        if (peek3.getType() == Token::Type::RBRACE)  
+                        if (peek3.getType() == Token::RBRACE)  
                         {
                             NextToken();
                             return ret;
                         }
-                        if (peek3.getType() == Token::Type::SEMICOLON || peek3.getType() == Token::Type::_EOF) 
+                        if (peek3.getType() == Token::SEMICOLON || peek3.getType() == Token::_EOF) 
                         {
                             ret->ListHandler(nullptr);
                             continue;
@@ -103,7 +106,7 @@ namespace Parser
                         ret->ListHandler(ParseStatement());
                         peek3 = PeekToken();
                     }
-                    if (peek3.getType() == Token::Type::RBRACE)
+                    if (peek3.getType() == Token::RBRACE)
                     {
                         NextToken();
                         return ret;
@@ -119,20 +122,20 @@ namespace Parser
             // {{(;|EOF)[statement]}}  {{(;|EOF)}}
             else
             {
-                auto ret = make_shared<BlockNode>(nullptr, BlockNode::List());
+                auto ret = MakeBlockPtr(nullptr);
                 auto peek2 = PeekToken();
-                while (peek2.getType() == Token::Type::SEMICOLON || peek2.getType() == Token::Type::_EOF)
+                while (peek2.getType() == Token::SEMICOLON || peek2.getType() == Token::_EOF)
                 {
                     NextToken();
                     peek2 = PeekToken();
                     
                     // {{(;|EOF)}}
-                    if (peek2.getType() == Token::Type::RBRACE)  
+                    if (peek2.getType() == Token::RBRACE)  
                     {
                         NextToken();
                         return ret;
                     }
-                    if (peek2.getType() == Token::Type::SEMICOLON || peek2.getType() == Token::Type::_EOF) 
+                    if (peek2.getType() == Token::SEMICOLON || peek2.getType() == Token::_EOF) 
                     {
                         ret->ListHandler(nullptr);
                         continue;
@@ -140,7 +143,7 @@ namespace Parser
                     ret->ListHandler(ParseStatement());
                     peek2 = PeekToken();
                 }
-                if (peek2.getType() == Token::Type::RBRACE)
+                if (peek2.getType() == Token::RBRACE)
                 {
                     NextToken();
                     return ret;
@@ -157,47 +160,52 @@ namespace Parser
 
     SimplePtr Parser::ParseSimple()
     {
-        return make_shared<SimpleNode>(ParseExpr());
+        return MakeSimplePtr(ParseExpr());
     }
 
-    StatementPtr    Parser::ParseStatement()
+    StatementPtr Parser::ParseStatement()
     {
         auto peek = PeekToken();
 
-        if (peek.getType() == Token::Type::LBRACKET || peek.getType() == Token::Type::IDENTIFIER || peek.getType() == Token::Type::FLOAT || peek.getType() == Token::Type::INTEGER)
+        if (peek.getType() == Token::LBRACKET || peek.getType() == Token::IDENTIFIER || peek.getType() == Token::FLOAT || peek.getType() == Token::INTEGER)
         {
-            return make_shared<StatementNode>(StatementNode::Type::SIMPLE, nullptr, nullptr, nullptr, ParseSimple());
+            return MakeStatementPtr(StatementNode::SIMPLE, nullptr, nullptr, nullptr, ParseSimple());
         }
-        if (peek.getType() == Token::Type::IF)
+        if (peek.getType() == Token::IF)
         {
             NextToken();
             auto pExpr = ParseExpr();
             auto pBlock = ParseBlock();
-            if (PeekToken().getType() != Token::Type::ELSE)
-                return make_shared<StatementNode>(StatementNode::Type::IF, pExpr, pBlock, nullptr, nullptr);
+            if (PeekToken().getType() != Token::ELSE)
+                return MakeStatementPtr(StatementNode::IF, pExpr, pBlock, nullptr, nullptr);
             else 
             {
                 NextToken();
-                return make_shared<StatementNode>(StatementNode::Type::IFELSE, pExpr, pBlock, ParseBlock(), nullptr);                
+                return MakeStatementPtr(StatementNode::IFELSE, pExpr, pBlock, ParseBlock(), nullptr);                
             }
         }
-        if (peek.getType() == Token::Type::WHILE)
+        if (peek.getType() == Token::WHILE)
         {
             NextToken();
-            return make_shared<StatementNode>(StatementNode::Type::WHILE, ParseExpr(), ParseBlock(), nullptr, nullptr);
+            return MakeStatementPtr(StatementNode::WHILE, ParseExpr(), ParseBlock(), nullptr, nullptr);
         }
     }
 
     ProgramPtr Parser::ParseProgram()
     {
+        auto ret = MakeProgramPtr();
         auto peek = PeekToken();
-        if (peek.getType() == Token::Type::SEMICOLON || peek.getType() == Token::Type::_EOF)
+        while (peek.getType() != Token::_EOF)
         {
+            if (peek.getType() == Token::SEMICOLON)
+                ret->ListHandler(nullptr);
+            else
+                ret->ListHandler(ParseStatement());
             NextToken();
-            return make_shared<ProgramNode>(nullptr);
+            peek = PeekToken();
         }
-        else 
-            return make_shared<ProgramNode>(ParseStatement());
+
+        return ret;
     }
 
 }

@@ -30,14 +30,14 @@ namespace Lexer
             tokenList.pop_front();
             return ret;
         }
-        return Token(Token::Type::_EOF);
+        return Token(Token::_EOF);
     }
 
     Token PeekToken() 
     {
         if (!tokenList.empty())
             return tokenList.front();
-        return Token(Token::Type::_EOF);
+        return Token(Token::_EOF);
     }
 
 
@@ -54,36 +54,36 @@ namespace Lexer
         {
             std::size_t found = s.find('.');
             if (found!=std::string::npos)
-                tokenList.push_back({Token::Type::FLOAT, s, x, y});
+                tokenList.push_back({Token::FLOAT, s, x, y});
             else
-                tokenList.push_back({Token::Type::INTEGER, s, x, y});            
+                tokenList.push_back({Token::INTEGER, s, x, y});            
         }
         else if (isalpha(s[0]))
-            tokenList.push_back({Token::Type::IDENTIFIER, s, x, y});
+            tokenList.push_back({Token::IDENTIFIER, s, x, y});
         else
-            errorToken.push_back({Token::Type::UNKNOWN, s, x, y});
+            errorToken.push_back({Token::UNKNOWN, s, x, y});
         
     }
 
     void InitReservedTable()
     {
-        reservedTable["if"] = Token::Type::IF;
-        reservedTable["else"] = Token::Type::ELSE;
-        reservedTable["while"] = Token::Type::WHILE;
-        reservedTable["var"] = Token::Type::VAR;
-        reservedTable[">="] = Token::Type::GE;
-        reservedTable["<="] = Token::Type::LE;
-        reservedTable["=="] = Token::Type::EQUAL;
-        reservedTable["="] = Token::Type::ASSIGN;
-        reservedTable["+"] = Token::Type::PLUS;
-        reservedTable["-"] = Token::Type::SUB;
-        reservedTable["*"] = Token::Type::MUL;
-        reservedTable["/"] = Token::Type::DIV;
-        reservedTable[";"] = Token::Type::SEMICOLON;
-        reservedTable["{"] = Token::Type::LBRACE;
-        reservedTable["}"] = Token::Type::RBRACE;
-        reservedTable["("] = Token::Type::LBRACKET;
-        reservedTable[")"] = Token::Type::RBRACKET;
+        reservedTable["if"] = Token::IF;
+        reservedTable["else"] = Token::ELSE;
+        reservedTable["while"] = Token::WHILE;
+        reservedTable["var"] = Token::VAR;
+        reservedTable[">="] = Token::GE;
+        reservedTable["<="] = Token::LE;
+        reservedTable["=="] = Token::EQUAL;
+        reservedTable["="] = Token::ASSIGN;
+        reservedTable["+"] = Token::PLUS;
+        reservedTable["-"] = Token::SUB;
+        reservedTable["*"] = Token::MUL;
+        reservedTable["/"] = Token::DIV;
+        reservedTable[";"] = Token::SEMICOLON;
+        reservedTable["{"] = Token::LBRACE;
+        reservedTable["}"] = Token::RBRACE;
+        reservedTable["("] = Token::LBRACKET;
+        reservedTable[")"] = Token::RBRACKET;
     }
 
     void HandleErrorToken() 
