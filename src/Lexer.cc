@@ -104,36 +104,10 @@ namespace Lexer
         throw Error("Unknown token.");
     }
 
-    // void RunLexer(string fileName)  
-    // { 
-    //     std::regex  pattern(R"(([0-9]+.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
-        
-    //     fstream     file(fileName, std::fstream::in);
-    //     int         lineNum = -1;
-    //     string      buf;
-
-    //     if (!file.is_open()) throw Error("File is not open correctly.");
-        
-    //     InitReservedTable();
-    //     while (getline(file, buf))
-    //     {
-    //         lineNum++;
-    //         auto words_begin = std::sregex_iterator(buf.begin(), buf.end(), pattern);
-    //         auto words_end = std::sregex_iterator();
-    //         for (std::sregex_iterator i = words_begin; i != words_end; ++i) 
-    //         {
-    //            //std::cout << i->str() << std::endl;
-    //             AddToken(i->str(), i->position(), lineNum);
-    //         }
-    //     }
-    //     file.close();
-
-    //     HandleErrorToken();
-    // }   
     
     void RunLexer(string code)  
     { 
-        std::regex          pattern(R"(([0-9]+.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
+        std::regex          pattern(R"(([0-9]+\.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
         int                 lineNum = -1;
         vector<string>      buf;
         

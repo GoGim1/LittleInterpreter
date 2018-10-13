@@ -54,7 +54,7 @@ TEST(Ast, CorrectDump)
     ASSERT_EQ(pStatementWithIf->Dump(), "if -id{3+-id;3+-id;}");
     
     auto pStatementWithIfElse = MakeStatementPtr(StatementNode::IFELSE, pExpr2, pBlock, pBlock, nullptr);
-    ASSERT_EQ(pStatementWithIfElse->Dump(), "if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;}");
+    ASSERT_EQ(pStatementWithIfElse->Dump(), "if 3+-id{3+-id;3+-id;}else{3+-id;3+-id;}");
 
     auto pStatementWithWhile = MakeStatementPtr(StatementNode::WHILE, pExpr2, pBlock, nullptr, nullptr);
     ASSERT_EQ(pStatementWithWhile->Dump(), "while 3+-id{3+-id;3+-id;}");
@@ -64,7 +64,7 @@ TEST(Ast, CorrectDump)
     pProgram->ListHandler(pStatementWithIf);
     pProgram->ListHandler(pStatementWithIfElse);
     pProgram->ListHandler(pStatementWithWhile);
-    ASSERT_EQ(pProgram->Dump(), "3+-id;if -id{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;};while 3+-id{3+-id;3+-id;};");
+    ASSERT_EQ(pProgram->Dump(), "3+-id;if -id{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else{3+-id;3+-id;};while 3+-id{3+-id;3+-id;};");
 
 
 

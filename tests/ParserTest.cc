@@ -5,10 +5,8 @@
 using namespace Lexer;
 using namespace Parse;
 
-#include <iostream>
-using namespace std;
 
-TEST(Parser, Build) 
+TEST(Parser, BuildStep) 
 {
     // PrimaryNode
     {
@@ -46,10 +44,16 @@ TEST(Parser, Build)
 
     // ExprNode
     {
-        RunLexer("3+-id*2");
+        RunLexer("(3+-id)*2");
         Parser parser;
         auto p = parser.ParseExpr();
-        ASSERT_EQ(p->Dump(), "3+-id*2");
+        ASSERT_EQ(p->Dump(), "(3+-id)*2");
+    }
+    {
+        RunLexer("3+(-id)*2");
+        Parser parser;
+        auto p = parser.ParseExpr();
+        ASSERT_EQ(p->Dump(), "3+(-id)*2");
     }
     {
         RunLexer("3+-id*2");
@@ -162,10 +166,76 @@ TEST(Parser, Build)
     
     // ProgramNode    
     {
-        RunLexer("3+-id;if -id{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;};while 3+-id{3+-id;3+-id;}");
+        RunLexer("3+-id;if -id{3+-id;3+-id;};if (3+-id){3+-id;3+-id;}else {3+-id;3+(-id);};while 3+-id{(3+-id);3+-id;}");
         Parser parser;
         auto p = parser.ParseProgram();
-        ASSERT_EQ(p->Dump(), "3+-id;if -id{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else{3+-id;3+-id;};while 3+-id{3+-id;3+-id;};");
+        ASSERT_EQ(p->Dump(), "3+-id;if -id{3+-id;3+-id;};if (3+-id){3+-id;3+-id;}else{3+-id;3+(-id);};while 3+-id{(3+-id);3+-id;};");
     }     
 }
+
+TEST(Parser, Build) 
+{
+    {
+        RunLexer("3;");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_EQ(parser.Dump(), "3;");
+    }
+    {
+        RunLexer("(3+-id*2)");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_EQ(parser.Dump(), "(3+-id*2);");
+    }
+    {
+        RunLexer("-id");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_EQ(parser.Dump(), "-id;");
+    }
+    {
+        RunLexer("3+(-id*2)");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "3+(-id*2);");
+    }
+    {
+        RunLexer("3+-id*2; ;3+-id*2");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "3+-id*2;;3+-id*2;");
+    }
+    {
+        RunLexer("if 3+-id*2{3+-id*2; ;3+-id*2;}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "if 3+-id*2{3+-id*2;;3+-id*2;};");
+    }
+    {
+        RunLexer("if 3+-id*2{3+-id*2; ;3+-id*2}else{; ;3+-id*2}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "if 3+-id*2{3+-id*2;;3+-id*2}else{;;3+-id*2};");
+    }
+    {
+        RunLexer("if 3+-id*2{}else{;}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "if 3+-id*2{}else{;};");
+    }
+    {
+        RunLexer("while 3+-id*2 {3+-id*2;;}");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_EQ(parser.Dump(), "while 3+-id*2{3+-id*2;;};");
+    } 
+    {
+        RunLexer("3+-id;if -2{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;};while 3+-id{3+-id;3+-id;}");
+        Parser parser;
+        parser.RunParser();  
+        ASSERT_EQ(parser.Dump(), "3+-id;if -2{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else{3+-id;3+-id;};while 3+-id{3+-id;3+-id;};");
+    }     
+}
+
+
 

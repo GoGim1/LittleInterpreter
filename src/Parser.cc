@@ -1,9 +1,11 @@
 // TODO: 后半部分不见，EOF提前出现的错误处理
+#ifdef DEBUG
+#undef DEBUG
+
 #include <memory>
 #include "Parser.h"
 #include "Lexer.h"
 #include "Helper.h"
-
 
 namespace Parse
 {
@@ -15,8 +17,8 @@ namespace Parse
 
     PrimaryPtr Parser::ParsePrimary()
     {
+        Print("ParsePrimary");
         auto t = NextToken();
-        
         if (t.getType() == Token::LBRACKET)
         {
             //TODO: PrimaryPtr
@@ -35,12 +37,13 @@ namespace Parse
         {
             return nullptr;
         }
+        
     }
 
     FactorPtr Parser::ParseFactor()
     {
+        Print("ParseFactor");
         auto t = PeekToken();
-        //Print(t.Dump());
         if (t.getType() == Token::SUB)
         {
             t = NextToken();
@@ -53,6 +56,7 @@ namespace Parse
 
     ExprPtr Parser::ParseExpr()
     {
+        Print("ParseExpr");
         auto ret = MakeExprPtr(ParseFactor());
         while (PeekToken().getType() == Token::PLUS||
                 PeekToken().getType() == Token::SUB ||
@@ -68,6 +72,7 @@ namespace Parse
 
     BlockPtr Parser::ParseBlock()
     {
+        Print("ParseBlock");
         NextToken();
         auto peek = PeekToken();
 
@@ -175,17 +180,16 @@ namespace Parse
 
     SimplePtr Parser::ParseSimple()
     {
+        Print("ParseSimple");
         return MakeSimplePtr(ParseExpr());
     }
 
     StatementPtr Parser::ParseStatement()
     {
+        Print("ParseStatement");
         auto peek = PeekToken();
 
-        if (peek.getType() == Token::LBRACKET || peek.getType() == Token::IDENTIFIER || peek.getType() == Token::FLOAT || peek.getType() == Token::INTEGER)
-        {
-            return MakeStatementPtr(StatementNode::SIMPLE, nullptr, nullptr, nullptr, ParseSimple());
-        }
+        
         if (peek.getType() == Token::IF)
         {
             NextToken();
@@ -199,20 +203,25 @@ namespace Parse
                 return MakeStatementPtr(StatementNode::IFELSE, pExpr, pBlock, ParseBlock(), nullptr);                
             }
         }
-        if (peek.getType() == Token::WHILE)
+        else if (peek.getType() == Token::WHILE)
         {
             NextToken();
-            //Print("In Statement");
 
             // The function parameters are read in order from right to left.            
             auto p = ParseExpr();
             return MakeStatementPtr(StatementNode::WHILE, p, ParseBlock(), nullptr, nullptr);
+        }
+        //if (peek.getType() == Token::LBRACKET || peek.getType() == Token::IDENTIFIER || peek.getType() == Token::FLOAT || peek.getType() == Token::INTEGER)
+        else
+        {
+            return MakeStatementPtr(StatementNode::SIMPLE, nullptr, nullptr, nullptr, ParseSimple());
         }
         return nullptr;
     }
 
     ProgramPtr Parser::ParseProgram()
     {
+        Print("ParseProgram");
         auto ret = MakeProgramPtr();
         auto peek = PeekToken();
         while (peek.getType() != Token::_EOF)
@@ -229,3 +238,7 @@ namespace Parse
     }
 
 }
+
+
+#define DEBUG
+#endif

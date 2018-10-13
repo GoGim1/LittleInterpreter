@@ -124,5 +124,5 @@ install_manifest.txt
 *.dSYM/
 
 test.cc
-
+test
 # Created by .ignore support plugin (hsz.mobi)

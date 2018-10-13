@@ -17,6 +17,8 @@ namespace Parse
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
         
+        void            RunParser() {  program = ParseProgram(); } 
+        string          Dump() {  return program->Dump(); }
     private:
         ProgramPtr      program;
 
