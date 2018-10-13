@@ -77,7 +77,7 @@ namespace Ast
                 ret << "if " << pExpr->Dump() << pBlock->Dump();
                 break;
             case IFELSE: 
-                ret << "if " << pExpr->Dump() << pBlock->Dump() << "else " << pBlockOfElse->Dump();
+                ret << "if " << pExpr->Dump() << pBlock->Dump() << "else" << pBlockOfElse->Dump();
                 break;                
             case WHILE:            
                 ret << "while " << pExpr->Dump() << pBlock->Dump();

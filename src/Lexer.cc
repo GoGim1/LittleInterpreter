@@ -8,6 +8,9 @@
 #include "Lexer.h"
 #include "Error.h"
 
+// #include <iostream> 
+// using namespace std;
+
 namespace Lexer
 {
     using namespace Util;

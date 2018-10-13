@@ -1,11 +1,11 @@
 // TODO: 后半部分不见，EOF提前出现的错误处理
-
 #include <memory>
 #include "Parser.h"
 #include "Lexer.h"
 #include "Helper.h"
 
-namespace Parser
+
+namespace Parse
 {
     using namespace Lexer;
 
@@ -16,7 +16,7 @@ namespace Parser
     PrimaryPtr Parser::ParsePrimary()
     {
         auto t = NextToken();
-
+        
         if (t.getType() == Token::LBRACKET)
         {
             //TODO: PrimaryPtr
@@ -31,16 +31,24 @@ namespace Parser
         }    
 
         // TODO error: wrong primary
-        else{}
+        else 
+        {
+            return nullptr;
+        }
     }
 
     FactorPtr Parser::ParseFactor()
     {
-        auto t = NextToken();
+        auto t = PeekToken();
+        //Print(t.Dump());
         if (t.getType() == Token::SUB)
+        {
+            t = NextToken();
             return MakeFactorPtr(ParsePrimary(), MakeTokenPtr(t));
+        }
         else 
             return MakeFactorPtr(ParsePrimary(), nullptr);
+        
     }
 
     ExprPtr Parser::ParseExpr()
@@ -51,7 +59,9 @@ namespace Parser
                 PeekToken().getType() == Token::MUL ||
                 PeekToken().getType() == Token::DIV)
         {
-           ret->ListHandler(MakeTokenPtr(NextToken()), ParseFactor());
+            // The function parameters are read in order from right to left.
+            auto p = MakeTokenPtr(NextToken());
+            ret->ListHandler(p, ParseFactor());
         }
         return ret;
     }
@@ -95,6 +105,7 @@ namespace Parser
                         // {[statement]{(;|EOF)}}
                         if (peek3.getType() == Token::RBRACE)  
                         {
+                            ret->ListHandler(nullptr);                            
                             NextToken();
                             return ret;
                         }
@@ -132,6 +143,7 @@ namespace Parser
                     // {{(;|EOF)}}
                     if (peek2.getType() == Token::RBRACE)  
                     {
+                        ret->ListHandler(nullptr);                        
                         NextToken();
                         return ret;
                     }
@@ -150,12 +162,15 @@ namespace Parser
                 }
                 
                 //TODO {{(;|EOF)[statement]} error:缺少右括号                
-                else{}
+                else
+                {
+                    return nullptr;
+                }
                 
             }
         }
         
-
+        return nullptr;
     }
 
     SimplePtr Parser::ParseSimple()
@@ -187,8 +202,13 @@ namespace Parser
         if (peek.getType() == Token::WHILE)
         {
             NextToken();
-            return MakeStatementPtr(StatementNode::WHILE, ParseExpr(), ParseBlock(), nullptr, nullptr);
+            //Print("In Statement");
+
+            // The function parameters are read in order from right to left.            
+            auto p = ParseExpr();
+            return MakeStatementPtr(StatementNode::WHILE, p, ParseBlock(), nullptr, nullptr);
         }
+        return nullptr;
     }
 
     ProgramPtr Parser::ParseProgram()

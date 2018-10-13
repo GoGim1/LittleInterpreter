@@ -1,12 +1,13 @@
 #pragma once
+
 #include <memory>
 #include <string>
 #include <vector>
 #include <utility>
+#include <cassert>
 #include "Token.h"
+#include "Helper.h"
 
-#include <iostream>
-using namespace std;
 
 namespace Ast
 {
@@ -17,7 +18,7 @@ namespace Ast
     using std::vector;
     using std::pair;
     using std::make_shared;
-
+    
     class AstNode //: public std::enable_shared_from_this<AstNode>
     {
     public:
@@ -48,7 +49,10 @@ namespace Ast
     {
     public:
         //TODO: const reference
-        PrimaryNode(const ExprPtr& pExprRhs, const TokenPtr& pTokenRhs) : pExpr(pExprRhs), pToken(pTokenRhs) {}
+        PrimaryNode(const ExprPtr& pExprRhs, const TokenPtr& pTokenRhs) : pExpr(pExprRhs), pToken(pTokenRhs) 
+        {
+            Assert((!pToken && pExpr)||(pToken && !pExpr), "PrimaryNode must have one and only one non-nullptr member.");            
+        }
         virtual                 ~PrimaryNode() {}
         // (Debug)
         virtual string          Dump() const override;
@@ -63,7 +67,11 @@ namespace Ast
     class FactorNode : public AstNode
     {
     public:
-        FactorNode(const PrimaryPtr& pPrimaryRhs, const TokenPtr& pTokenRhs): pPrimary(pPrimaryRhs), pToken(pTokenRhs) {}
+        FactorNode(const PrimaryPtr& pPrimaryRhs, const TokenPtr& pTokenRhs): pPrimary(pPrimaryRhs), pToken(pTokenRhs) 
+        {
+            Assert((!pToken && pPrimary)||(pToken && pPrimary), "FactorNode must have non-nullptr members or have one non-nullptr pPrimary one nullptr pToken.");
+            Assert(!pToken || (pToken->getType() == Token::SUB || pToken->getType() == Token::PLUS), "FactorNode pToken's type should be SUB or PLUS.");      
+        }
         virtual             ~FactorNode() {}
         // (Debug)
         virtual string      Dump() const override;
@@ -80,7 +88,10 @@ namespace Ast
         typedef pair<TokenPtr, FactorPtr>   Pair;
         typedef vector<Pair>                List;
 
-        ExprNode(const FactorPtr& pFactorRhs): pFactor(pFactorRhs) {}
+        ExprNode(const FactorPtr& pFactorRhs): pFactor(pFactorRhs) 
+        {
+            Assert(pFactor, "ExprNode pFactor can not be nullptr.");
+        }
         virtual             ~ExprNode() {}
         // (Debug)
         virtual string      Dump() const override;
@@ -111,7 +122,10 @@ namespace Ast
     class SimpleNode : public AstNode
     {
     public:
-        SimpleNode(const ExprPtr& pExprRhs): pExpr(pExprRhs) {}
+        SimpleNode(const ExprPtr& pExprRhs): pExpr(pExprRhs) 
+        {
+            Assert(pExpr, "SimpleNode pExpr can not be nullptr.");
+        }
         virtual             ~SimpleNode() {}
         // (Debug)
         virtual string      Dump() const override;
@@ -125,17 +139,39 @@ namespace Ast
     class StatementNode : public AstNode
     {
     public:
-        enum Type { IF, IFELSE,WHILE, SIMPLE };
+        enum Type { UNKNOWN, IF, IFELSE, WHILE, SIMPLE };
 
         StatementNode(const Type& typeRhs, const ExprPtr& pExprRhs, const BlockPtr& pBlockRhs, const BlockPtr& pBlockOfElseRhs, const SimplePtr& pSimpleRhs):
             type(typeRhs), pExpr(pExprRhs), pBlock(pBlockRhs), pBlockOfElse(pBlockOfElseRhs), pSimple(pSimpleRhs) {} 
-        virtual                 ~StatementNode() {}
+        virtual                 ~StatementNode() 
+        {
+            #ifdef DEBUG
+            switch (type)
+            {
+            case IF:
+                Assert(pExpr && pBlock && !pBlockOfElse && !pSimple, "StatementNode in IF type have incorrect members.");
+                break;
+            case WHILE:
+                Assert(pExpr && pBlock && !pBlockOfElse && !pSimple, "StatementNode in WHILE type have incorrect members.");
+                break;
+            case IFELSE:
+                Assert(pExpr && pBlock && pBlockOfElse && !pSimple, "StatementNode in IFELSE type have incorrect members.");
+                break;
+            case SIMPLE:
+                Assert(!pExpr && !pBlock && !pBlockOfElse && pSimple, "StatementNode in SIMPLE type have incorrect members.");
+                break;
+            case UNKNOWN:
+                Assert(1, "StatementNode must have type.");
+                break;
+            }
+            #endif
+        }
         // (Debug)
         virtual string          Dump() const override;
 
     private:
 
-        Type                    type;
+        Type                    type            = UNKNOWN;
         ExprPtr                 pExpr           = nullptr;
         BlockPtr                pBlock          = nullptr;
         BlockPtr                pBlockOfElse    = nullptr;        

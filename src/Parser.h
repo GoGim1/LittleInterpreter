@@ -2,7 +2,7 @@
 
 #include "Ast.h"
 
-namespace Parser
+namespace Parse
 {
     using namespace Ast;
 
