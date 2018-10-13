@@ -10,23 +10,74 @@ using namespace Lexer;
 // }
 TEST(Lexer, Basic) 
 {
-    RunLexer("../tests/data/test.txt");
+    RunLexerFromFile("../tests/testcases/LexerCase.txt");
+    ASSERT_EQ(PeekToken().getPosX(), 0);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "var");
     ASSERT_EQ(NextToken().getType(), Token::Type::VAR);
+    
+    ASSERT_EQ(PeekToken().getPosX(), 4);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "i");
     ASSERT_EQ(NextToken().getType(), Token::Type::IDENTIFIER);
+
+    ASSERT_EQ(PeekToken().getPosX(), 6);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "=");
     ASSERT_EQ(NextToken().getType(), Token::Type::ASSIGN);
+
+
+    ASSERT_EQ(PeekToken().getPosX(), 8);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "2");
     ASSERT_EQ(NextToken().getType(), Token::Type::INTEGER);
+
+    ASSERT_EQ(PeekToken().getPosX(), 9);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), ";");
     ASSERT_EQ(NextToken().getType(), Token::Type::SEMICOLON);
+
+    ASSERT_EQ(PeekToken().getPosX(), 0);
+    ASSERT_EQ(PeekToken().getPosY(), 1);
+    ASSERT_EQ(PeekToken().getValue(), "if");
     ASSERT_EQ(NextToken().getType(), Token::Type::IF);
+    
+    ASSERT_EQ(PeekToken().getPosX(), 3);
+    ASSERT_EQ(PeekToken().getPosY(), 1);
+    ASSERT_EQ(PeekToken().getValue(), "(");
     ASSERT_EQ(NextToken().getType(), Token::Type::LBRACKET);
+
+    ASSERT_EQ(PeekToken().getPosX(), 4);
+    ASSERT_EQ(PeekToken().getPosY(), 1);
+    ASSERT_EQ(PeekToken().getValue(), "i");
     ASSERT_EQ(NextToken().getType(), Token::Type::IDENTIFIER);
+    
+    ASSERT_EQ(PeekToken().getPosX(), 6);
+    ASSERT_EQ(PeekToken().getPosY(), 1);
+    ASSERT_EQ(PeekToken().getValue(), "==");
     ASSERT_EQ(NextToken().getType(), Token::Type::EQUAL);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::FLOAT);
+
     ASSERT_EQ(NextToken().getType(), Token::Type::RBRACKET);
+    
+    ASSERT_EQ(PeekToken().getPosX(), 0);
+    ASSERT_EQ(PeekToken().getPosY(), 2);
+    ASSERT_EQ(PeekToken().getValue(), "{");
     ASSERT_EQ(NextToken().getType(), Token::Type::LBRACE);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::IDENTIFIER);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::ASSIGN);
+    
+    ASSERT_EQ(PeekToken().getPosX(), 6);
+    ASSERT_EQ(PeekToken().getPosY(), 3);
+    ASSERT_EQ(PeekToken().getValue(), "3");
     ASSERT_EQ(NextToken().getType(), Token::Type::INTEGER);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::SEMICOLON);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::RBRACE);
+    
     ASSERT_EQ(NextToken().getType(), Token::Type::_EOF);
 }

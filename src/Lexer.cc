@@ -4,15 +4,15 @@
 #include <regex>
 #include <iterator>
 #include <unordered_map>
+#include <vector>
 #include "Lexer.h"
 #include "Error.h"
-
-#include <iostream>
 
 namespace Lexer
 {
     using namespace Util;
 
+    using std::vector;
     using std::fstream;
     using std::exception;
     using std::list;
@@ -56,9 +56,9 @@ namespace Lexer
             if (found!=std::string::npos)
                 tokenList.push_back({Token::FLOAT, s, x, y});
             else
-                tokenList.push_back({Token::INTEGER, s, x, y});            
+                tokenList.push_back({Token::INTEGER, s, x, y});         
         }
-        else if (isalpha(s[0]))
+        else if (isalpha(s[0]))   
             tokenList.push_back({Token::IDENTIFIER, s, x, y});
         else
             errorToken.push_back({Token::UNKNOWN, s, x, y});
@@ -101,30 +101,79 @@ namespace Lexer
         throw Error("Unknown token.");
     }
 
-    void RunLexer(string fileName)  
-    { 
-        std::regex  pattern(R"(([0-9]+.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
+    // void RunLexer(string fileName)  
+    // { 
+    //     std::regex  pattern(R"(([0-9]+.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
         
-        fstream     file(fileName, std::fstream::in);
-        int         lineNum = -1;
-        string      buf;
+    //     fstream     file(fileName, std::fstream::in);
+    //     int         lineNum = -1;
+    //     string      buf;
 
-        if (!file.is_open()) throw Error("File is not open correctly.");
+    //     if (!file.is_open()) throw Error("File is not open correctly.");
+        
+    //     InitReservedTable();
+    //     while (getline(file, buf))
+    //     {
+    //         lineNum++;
+    //         auto words_begin = std::sregex_iterator(buf.begin(), buf.end(), pattern);
+    //         auto words_end = std::sregex_iterator();
+    //         for (std::sregex_iterator i = words_begin; i != words_end; ++i) 
+    //         {
+    //            //std::cout << i->str() << std::endl;
+    //             AddToken(i->str(), i->position(), lineNum);
+    //         }
+    //     }
+    //     file.close();
+
+    //     HandleErrorToken();
+    // }   
+    
+    void RunLexer(string code)  
+    { 
+        std::regex          pattern(R"(([0-9]+.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
+        int                 lineNum = -1;
+        vector<string>      buf;
         
         InitReservedTable();
-        while (getline(file, buf))
+
+        code += "\n";
+        size_t pos = code.find("\n");
+        size_t size = code.size();
+        while (pos != std::string::npos)
+        {
+            std::string x = code.substr(0,pos);
+            buf.push_back(x);
+            code = code.substr(pos+1,size);
+            pos = code.find("\n");
+        }
+
+        for (auto& i : buf)
         {
             lineNum++;
-            auto words_begin = std::sregex_iterator(buf.begin(), buf.end(), pattern);
+            auto words_begin = std::sregex_iterator(i.begin(), i.end(), pattern);
             auto words_end = std::sregex_iterator();
-            for (std::sregex_iterator i = words_begin; i != words_end; ++i) 
+            for (std::sregex_iterator j = words_begin; j != words_end; ++j) 
             {
                //std::cout << i->str() << std::endl;
-                AddToken(i->str(), i->position(), lineNum);
+                AddToken(j->str(), j->position(), lineNum);
             }
         }
-        file.close();
 
         HandleErrorToken();
     }
+
+    void RunLexerFromFile(string fileName)  
+    { 
+        fstream                         file(fileName, std::fstream::in);
+
+        if (!file.is_open()) throw Error("File is not open correctly.");
+
+        std::istreambuf_iterator<char>  beg(file), end; 
+        std::string                     code(beg, end);
+
+        RunLexer(code); 
+
+        file.close();
+
+    } 
 };

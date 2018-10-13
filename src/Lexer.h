@@ -10,6 +10,7 @@ namespace Lexer
     extern Token NextToken();
     extern Token PeekToken();
 
-    extern void RunLexer(string fileName);
+    extern void RunLexer(string code);
+    extern void RunLexerFromFile(string fileName);
 
 };

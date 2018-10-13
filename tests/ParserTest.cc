@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
-#include "Parser.h"
+//#include "Parser.h"
+#include "Lexer.h"
 
-using namespace Ast;
+using namespace Lexer;
+//using namespace Ast;
 
 TEST(Parser, Build) 
 {
-        
+    RunLexer("../tests/testcases/LexerCase.txt");
+    
 }
