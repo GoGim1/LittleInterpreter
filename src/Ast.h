@@ -54,7 +54,7 @@ namespace Ast
             Assert((!pToken && pExpr)||(pToken && !pExpr), "PrimaryNode must have one and only one non-nullptr member.");            
         }
         virtual                 ~PrimaryNode() {}
-        // (Debug)
+        
         virtual string          Dump() const override;
 
     private:
@@ -73,7 +73,7 @@ namespace Ast
             Assert(!pToken || (pToken->getType() == Token::SUB || pToken->getType() == Token::PLUS), "FactorNode pToken's type should be SUB or PLUS.");      
         }
         virtual             ~FactorNode() {}
-        // (Debug)
+        
         virtual string      Dump() const override;
 
     private:
@@ -93,7 +93,7 @@ namespace Ast
             Assert(pFactor, "ExprNode pFactor can not be nullptr.");
         }
         virtual             ~ExprNode() {}
-        // (Debug)
+        
         virtual string      Dump() const override;
 
         void                ListHandler(const TokenPtr&, const FactorPtr&);
@@ -110,7 +110,7 @@ namespace Ast
 
         BlockNode(const StatementPtr& pStatementRhs): pStatement(pStatementRhs) {}
         virtual                 ~BlockNode() {}
-        // (Debug)
+        
         virtual string          Dump() const override;
         void                    ListHandler(const StatementPtr&);
     private:
@@ -127,7 +127,7 @@ namespace Ast
             Assert(pExpr, "SimpleNode pExpr can not be nullptr.");
         }
         virtual             ~SimpleNode() {}
-        // (Debug)
+        
         virtual string      Dump() const override;
 
     private:
@@ -166,7 +166,7 @@ namespace Ast
             }
             #endif
         }
-        // (Debug)
+        
         virtual string          Dump() const override;
 
     private:
@@ -186,7 +186,7 @@ namespace Ast
 
         ProgramNode() {}
         virtual             ~ProgramNode() {}
-        // (Debug)
+        
         virtual string      Dump() const override;
         void                ListHandler(const StatementPtr&);
     private:

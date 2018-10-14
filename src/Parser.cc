@@ -1,8 +1,8 @@
 // TODO: 后半部分不见，EOF提前出现的错误处理
-#ifdef DEBUG
-#undef DEBUG
+#define DEBUG
 
 #include <memory>
+#include <iostream>
 #include "Parser.h"
 #include "Lexer.h"
 #include "Helper.h"
@@ -17,13 +17,18 @@ namespace Parse
 
     PrimaryPtr Parser::ParsePrimary()
     {
-        Print("ParsePrimary");
+        //Print("ParsePrimary");
         auto t = NextToken();
         if (t.getType() == Token::LBRACKET)
         {
-            //TODO: PrimaryPtr
             PrimaryPtr ret = MakePrimaryPtr(ParseExpr(), nullptr);
-            NextToken();
+            t = NextToken();
+            if (t.getType() != Token::RBRACKET)
+            {
+                Print(t.getPosX());
+                Print(t.getPosY());
+                AddError(Error("An error occur when parsing PrimaryNode: \"(expr\" missing \")\".", t.getPosX(), t.getPosY()));
+            }
             return ret;
         }                     
         else if (t.getType() == Token::IDENTIFIER || t.getType() == Token::FLOAT ||t.getType() == Token::INTEGER)
@@ -31,10 +36,11 @@ namespace Parse
             auto ret = MakePrimaryPtr(nullptr, MakeTokenPtr(t));
             return ret;
         }    
-
-        // TODO error: wrong primary
         else 
         {
+            string tmp("PrimaryNode parse error: ");
+            tmp = tmp + t.getValue() + " can not be a part of PrimaryNode.";
+            AddError(Error(tmp, t.getPosX(), t.getPosY()));
             return nullptr;
         }
         
@@ -42,7 +48,7 @@ namespace Parse
 
     FactorPtr Parser::ParseFactor()
     {
-        Print("ParseFactor");
+        //Print("ParseFactor");
         auto t = PeekToken();
         if (t.getType() == Token::SUB)
         {
@@ -56,7 +62,7 @@ namespace Parse
 
     ExprPtr Parser::ParseExpr()
     {
-        Print("ParseExpr");
+        //Print("ParseExpr");
         auto ret = MakeExprPtr(ParseFactor());
         while (PeekToken().getType() == Token::PLUS||
                 PeekToken().getType() == Token::SUB ||
@@ -72,7 +78,7 @@ namespace Parse
 
     BlockPtr Parser::ParseBlock()
     {
-        Print("ParseBlock");
+        //Print("ParseBlock");
         NextToken();
         auto peek = PeekToken();
 
@@ -180,13 +186,13 @@ namespace Parse
 
     SimplePtr Parser::ParseSimple()
     {
-        Print("ParseSimple");
+        //Print("ParseSimple");
         return MakeSimplePtr(ParseExpr());
     }
 
     StatementPtr Parser::ParseStatement()
     {
-        Print("ParseStatement");
+        //Print("ParseStatement");
         auto peek = PeekToken();
 
         
@@ -221,7 +227,7 @@ namespace Parse
 
     ProgramPtr Parser::ParseProgram()
     {
-        Print("ParseProgram");
+        //Print("ParseProgram");
         auto ret = MakeProgramPtr();
         auto peek = PeekToken();
         while (peek.getType() != Token::_EOF)
@@ -237,8 +243,23 @@ namespace Parse
         return ret;
     }
 
+    void Parser::HandleError()
+    {
+        if (errorList.empty())  
+            return;
+        for (auto& i : errorList)
+            std::cout << i.what() << std::endl;
+        throw errorList.front();
+    }
+
+    void Parser::AddError(const Error& e)
+    {
+        errorList.push_back(e);
+    }
+
+    void Parser::DumpErrorList()
+    {
+        for (auto& i : errorList)
+            std::cout << i.what() << std::endl;
+    }
 }
-
-
-#define DEBUG
-#endif

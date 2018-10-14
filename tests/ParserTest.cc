@@ -237,5 +237,15 @@ TEST(Parser, Build)
     }     
 }
 
+TEST(Parser, Error) 
+{
+    {
+        RunLexerFromFile("../tests/testcases/ParserCase1.txt");
+        Parser parser;
+        parser.RunParser();  
+        parser.DumpErrorList();
+    }    
+}
+
 
 

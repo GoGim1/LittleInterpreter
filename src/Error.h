@@ -1,12 +1,7 @@
 #pragma once 
 
-
 #include <string>
 #include <exception>
-
-
-#include <iostream>
-
 
 namespace Util
 {
@@ -20,7 +15,7 @@ namespace Util
         {
             if (posY != -1)
             {
-                string ret("Line " + std::to_string(posY) + ", " + std::to_string(posX) + ": "  + msg.c_str());
+                string ret("[Line " + std::to_string(posY) + ", " + std::to_string(posX) + "]: "  + msg.c_str());
                 //std::cout << ret.c_str() << std::endl;
                 msg = ret.c_str();
             }
