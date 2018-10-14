@@ -19,13 +19,13 @@ namespace Parse
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
         
-        void            RunParser()     {  program = ParseProgram(); } 
-        string          Dump()          {  return program->Dump(); }
         void            HandleError();
         void            AddError(const Error&);
+        void            RunParser();
 
         // (DEBUG)
         void            DumpErrorList();
+        string          Dump();
     private:
         ProgramPtr      program;
         vector<Error>   errorList;

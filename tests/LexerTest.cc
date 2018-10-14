@@ -79,5 +79,9 @@ TEST(Lexer, Basic)
     
     ASSERT_EQ(NextToken().getType(), Token::Type::RBRACE);
     
+    ASSERT_EQ(PeekToken().getPosX(), 1);
+    ASSERT_EQ(PeekToken().getPosY(), 4);
+    ASSERT_EQ(PeekToken().getValue(), "EOF");
     ASSERT_EQ(NextToken().getType(), Token::Type::_EOF);
+
 }

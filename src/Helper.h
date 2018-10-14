@@ -12,10 +12,20 @@
 
 #ifdef DEBUG
 #include <iostream>
+#include <cassert>
 using std::cout;
 using std::endl;
 #define Print(str)          cout << (str) << endl
 #define Assert(a, b)        assert((a) && (b))
+
+#define ExceptionBegin      \
+try                         \
+{                               
+#define ExceptionEnd        \
+}                           \
+catch (Error& e)            \
+{}
+
 #else 
 #define Print(str)  
 #define Assert(a, b)        

@@ -1,5 +1,6 @@
-// TODO: 后半部分不见，EOF提前出现的错误处理
-#define DEBUG
+// TODO: 1.职责问题，如1+/2, 应该是parse factor 1+/2时候报错，还是parse primary /2时候报错?
+//       2.错误传播问题：孙级parse出错，AddError并返回给子级nullptr， 但是会触发Assert警告。
+//          应该在子级防止孙级parse出错，传nullptr给父级；还是。。。
 
 #include <memory>
 #include <iostream>
@@ -19,15 +20,14 @@ namespace Parse
     {
         //Print("ParsePrimary");
         auto t = NextToken();
+        //Print(t.Dump());
         if (t.getType() == Token::LBRACKET)
         {
             PrimaryPtr ret = MakePrimaryPtr(ParseExpr(), nullptr);
             t = NextToken();
             if (t.getType() != Token::RBRACKET)
             {
-                Print(t.getPosX());
-                Print(t.getPosY());
-                AddError(Error("An error occur when parsing PrimaryNode: \"(expr\" missing \")\".", t.getPosX(), t.getPosY()));
+                AddError(Error("An error occur when parsing PrimaryNode: missing \")\".", t.getPosX(), t.getPosY()));
             }
             return ret;
         }                     
@@ -38,8 +38,8 @@ namespace Parse
         }    
         else 
         {
-            string tmp("PrimaryNode parse error: ");
-            tmp = tmp + t.getValue() + " can not be a part of PrimaryNode.";
+            string tmp("An error occur when parsing PrimaryNode: \"");
+            tmp = tmp + t.getValue() + "\" can not be a part of PrimaryNode.";
             AddError(Error(tmp, t.getPosX(), t.getPosY()));
             return nullptr;
         }
@@ -50,28 +50,53 @@ namespace Parse
     {
         //Print("ParseFactor");
         auto t = PeekToken();
-        if (t.getType() == Token::SUB)
+        //Print(t.Dump());
+        if (t.getType() == Token::SUB || t.getType() == Token::PLUS)
         {
             t = NextToken();
-            return MakeFactorPtr(ParsePrimary(), MakeTokenPtr(t));
+            if (PeekToken().getType() == Token::LBRACKET || PeekToken().getType() == Token::IDENTIFIER || PeekToken().getType() == Token::FLOAT || PeekToken().getType() == Token::INTEGER)
+                return MakeFactorPtr(ParsePrimary(), MakeTokenPtr(t));
+            AddError(Error("An error occur when parsing FactorNode: PrimaryNode missing.", t.getPosX()+1, t.getPosY()));
+            return nullptr;
         }
-        else 
+        else if (t.getType() == Token::LBRACKET || t.getType() == Token::IDENTIFIER || t.getType() == Token::FLOAT ||t.getType() == Token::INTEGER)
             return MakeFactorPtr(ParsePrimary(), nullptr);
-        
+        else 
+        {
+            string tmp("An error occur when parsing FactorNode: \"");
+            tmp = tmp + t.getValue() + "\" should be \"+\" or \"-\"";
+            AddError(Error(tmp, t.getPosX(), t.getPosY()));
+            return nullptr;
+        }
     }
 
     ExprPtr Parser::ParseExpr()
     {
         //Print("ParseExpr");
         auto ret = MakeExprPtr(ParseFactor());
-        while (PeekToken().getType() == Token::PLUS||
-                PeekToken().getType() == Token::SUB ||
-                PeekToken().getType() == Token::MUL ||
-                PeekToken().getType() == Token::DIV)
+        //Print(ret->Dump());
+        while (PeekToken().getType() == Token::PLUS ||
+               PeekToken().getType() == Token::MUL ||
+               PeekToken().getType() == Token::SUB ||
+               PeekToken().getType() == Token::DIV)
         {
             // The function parameters are read in order from right to left.
             auto p = MakeTokenPtr(NextToken());
+            //Print(p->Dump());            
+            if (PeekToken().getType() != Token::SUB && 
+                PeekToken().getType() != Token::PLUS && 
+                PeekToken().getType() != Token::IDENTIFIER && 
+                PeekToken().getType() != Token::FLOAT &&
+                PeekToken().getType() != Token::INTEGER &&
+                PeekToken().getType() != Token::LBRACKET)
+                {
+                    AddError(Error("An error occur when parsing ExprNode: FactorNode missing after operator.", (*p).getPosX(), (*p).getPosY()));
+                    return nullptr;
+                }
+            //Print(p->Dump());
             ret->ListHandler(p, ParseFactor());
+            //Print(ret->Dump());
+            
         }
         return ret;
     }
@@ -257,9 +282,21 @@ namespace Parse
         errorList.push_back(e);
     }
 
+    // (DEBUG)
     void Parser::DumpErrorList()
     {
         for (auto& i : errorList)
             std::cout << i.what() << std::endl;
     }
+
+    string Parser::Dump()
+    {  
+        return program->Dump(); 
+    }
+
+    void Parser::RunParser()
+    {  
+        program = ParseProgram(); 
+        HandleError();
+    } 
 }

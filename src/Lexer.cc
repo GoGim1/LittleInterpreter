@@ -1,3 +1,5 @@
+// at first I just want to 
+
 #include <fstream>
 #include <exception>
 #include <list>
@@ -7,9 +9,7 @@
 #include <vector>
 #include "Lexer.h"
 #include "Error.h"
-
-// #include <iostream> 
-// using namespace std;
+#include "Helper.h"
 
 namespace Lexer
 {
@@ -24,23 +24,38 @@ namespace Lexer
     list<Token> errorToken;     
     std::unordered_map<string, Token::Type> reservedTable;
 
+#ifdef DEBUG
+    void PrintTokenList()
+    {
+        for (auto& i : tokenList)
+            Print(i.Dump());
+    }
+#endif
+
+    void Init()
+    {
+        tokenList.clear();
+        errorToken.clear();
+        reservedTable.clear();
+    }
 
     Token NextToken() 
     {   
-        if (!tokenList.empty())
+        Assert(!tokenList.empty(), "NextToken() error: TokenList is empty");
+        if (tokenList.size() > 1)
         {
             Token ret = tokenList.front();
-            tokenList.pop_front();
+            tokenList.pop_front();    
             return ret;
         }
-        return Token(Token::_EOF);
+        return tokenList.front();
     }
 
     Token PeekToken() 
     {
-        if (!tokenList.empty())
-            return tokenList.front();
-        return Token(Token::_EOF);
+        Assert(!tokenList.empty(), "PeekToken() error: TokenList is empty");
+        return tokenList.front();
+        
     }
 
 
@@ -52,7 +67,11 @@ namespace Lexer
             tokenList.push_back({t->second, s, x, y});     
             return;
         }
-
+        if (s == "EOF")
+        {
+            tokenList.push_back({Token::_EOF, s, x, y});        
+            return;
+        }
         if (isdigit(s[0]))
         {
             std::size_t found = s.find('.');
@@ -107,6 +126,8 @@ namespace Lexer
     
     void RunLexer(string code)  
     { 
+        //Print("RunLexer");
+        Init();
         std::regex          pattern(R"(([0-9]+\.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
         int                 lineNum = -1;
         vector<string>      buf;
@@ -135,7 +156,10 @@ namespace Lexer
                 AddToken(j->str(), j->position(), lineNum);
             }
         }
-
+        //PrintTokenList();
+        AddToken("EOF", buf.back().size(), lineNum);
+        //PrintTokenList();
+        
         HandleErrorToken();
     }
 
