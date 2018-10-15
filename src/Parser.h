@@ -18,10 +18,10 @@ namespace Parse
         SimplePtr       ParseSimple();
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
+        void            RunParser();
         
         void            HandleError();
         void            AddError(const Error&);
-        void            RunParser();
 
         // (DEBUG)
         void            DumpErrorList();

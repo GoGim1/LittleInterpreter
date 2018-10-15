@@ -285,7 +285,19 @@ TEST(Parser, Error)
         Parser parser;
         auto p = parser.ParsePrimary();
         parser.DumpErrorList();
-    }   
+    }    
+    {
+        RunLexer("-*5");
+        Parser parser;
+        auto p = parser.ParseFactor();
+        parser.DumpErrorList();
+    }    
+    {
+        RunLexer("(3");
+        Parser parser;
+        auto p = parser.ParseFactor();
+        parser.DumpErrorList();
+    }  
     {
         RunLexer("+");
         Parser parser;
@@ -293,11 +305,12 @@ TEST(Parser, Error)
         parser.DumpErrorList();
     }   
     {
-        RunLexer("/3");
+        RunLexer(" (3 + 2  }");
         Parser parser;
         auto p = parser.ParseFactor();
         parser.DumpErrorList();
-    }   
+    } 
+ 
     {
         RunLexer("3++");
         Parser parser;
@@ -310,19 +323,118 @@ TEST(Parser, Error)
         auto p = parser.ParseExpr();
         parser.DumpErrorList();
     }  
-    // {
-    //     RunLexer("==3+");
-    //     Parser parser;
-    //     auto p = parser.ParseExpr();
-    //     parser.DumpErrorList();
-    // }   
+    {
+        RunLexer("==3+");
+        Parser parser;
+        auto p = parser.ParseExpr();
+        parser.DumpErrorList();
+    }   
+    {
+        RunLexer("58");
+        Parser parser;
+        auto p = parser.ParseBlock();
+        parser.DumpErrorList();
+    }   
 
+    {
+        RunLexer("{");
+        Parser parser;
+        auto p = parser.ParseBlock();
+        parser.DumpErrorList();
+    }   
+    {
+        RunLexer("{33+");
+        Parser parser;
+        auto p = parser.ParseBlock();
+        parser.DumpErrorList();
+    }   
+    {
+        RunLexer("{33+6");
+        Parser parser;
+        auto p = parser.ParseBlock();
+        parser.DumpErrorList();
+    }   
+    {
+        RunLexer("{33+6;;*35");
+        Parser parser;
+        auto p = parser.ParseBlock();
+        parser.DumpErrorList();
+    }   
+ 
+    {
+        RunLexer("if ");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("if (+2)else");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("if (30**2)else");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("if (30*2)else {");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("if (30*2){30*2)");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("if (30*2){30*2; ;}else)");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("while(30*2){30*2; ;)");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }    
+    {
+        RunLexer("while(30*2{30*2; ;)");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("while");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }  
+    {
+        RunLexer("while(30*2))");
+        Parser parser;
+        auto p = parser.ParseStatement();
+        parser.DumpErrorList();
+    }   
 
+    {
+        RunLexer("while(30*2))");
+        Parser parser;
+        auto p = parser.ParseProgram();
+        parser.DumpErrorList();
+    }   
+    {
+        RunLexer("while(30*2){}if(){})");
+        Parser parser;
+        auto p = parser.ParseProgram();
+        parser.DumpErrorList();
+    }   
 
-
-
-
-    
     // ExceptionBegin
     //     RunLexer("(3 + 2  }");
     //     Parser parser;
