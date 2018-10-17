@@ -1,12 +1,19 @@
 #pragma once
-#include <vector>
+
+#include <memory>
+#include <sstream>
 #include "Error.h"
 #include "Ast.h"
+#include "Lexer.h"
+#include "Helper.h"
 
 namespace Parse
 {
     using namespace Ast;
+    using namespace Lexer;
     using namespace Util;
+
+    using std::stringstream;
 
     class Parser
     {
@@ -19,17 +26,9 @@ namespace Parse
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
         void            RunParser();
-        
-        void            HandleError();
-        void            AddError(const Error&);
-
-        // (DEBUG)
-        void            PrintError();        
-        string          DumpError();
         string          Dump();
     private:
         ProgramPtr      program;
-        vector<Error>   errorList;
     };
 
 }

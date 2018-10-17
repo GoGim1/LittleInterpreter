@@ -1,27 +1,8 @@
-// at first I just want to 
-
-#include <fstream>
-#include <exception>
-#include <list>
-#include <regex>
-#include <iterator>
-#include <unordered_map>
-#include <vector>
 #include "Lexer.h"
-#include "Error.h"
-#include "Helper.h"
 
 namespace Lexer
 {
-    using namespace Util;
-
-    using std::vector;
-    using std::fstream;
-    using std::exception;
-    using std::list;
-    
     list<Token> tokenList;      
-    list<Token> errorToken;     
     std::unordered_map<string, Token::Type> reservedTable;
 
 #ifdef DEBUG
@@ -31,13 +12,6 @@ namespace Lexer
             Print(i.Dump());
     }
 #endif
-
-    void Init()
-    {
-        tokenList.clear();
-        errorToken.clear();
-        reservedTable.clear();
-    }
 
     Token NextToken() 
     {   
@@ -83,8 +57,7 @@ namespace Lexer
         else if (isalpha(s[0]))   
             tokenList.push_back({Token::IDENTIFIER, s, x, y});
         else
-            errorToken.push_back({Token::UNKNOWN, s, x, y});
-        
+            AddError(Error("Unknown token: \""+s + "\".", x, y));
     }
 
     void InitReservedTable()
@@ -110,27 +83,11 @@ namespace Lexer
         reservedTable["("] = Token::LBRACKET;
         reservedTable[")"] = Token::RBRACKET;
     }
-
-    void HandleErrorToken() 
-    {
-        if (errorToken.empty())
-            return;
-        else 
-        {
-            for(auto& i : errorToken)
-            {
-                std::cerr << "[Line " << i.getPosY() << ", " << i.getPosX() 
-                            << "]: Unknown token \"" << i.getValue() << "\"." << std::endl;
-            }
-        }
-        throw Error("Unknown token.");
-    }
-
     
     void RunLexer(string code)  
     { 
-        //Print("RunLexer");
-        Init();
+        tokenList.clear();
+        
         std::regex          pattern(R"(([0-9]+\.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
         int                 lineNum = -1;
         vector<string>      buf;
@@ -154,29 +111,21 @@ namespace Lexer
             auto words_begin = std::sregex_iterator(i.begin(), i.end(), pattern);
             auto words_end = std::sregex_iterator();
             for (std::sregex_iterator j = words_begin; j != words_end; ++j) 
-            {
-               //std::cout << i->str() << std::endl;
                 AddToken(j->str(), j->position(), lineNum);
-            }
         }
-        //PrintTokenList();
         AddToken("EOF", buf.back().size(), lineNum);
-        //PrintTokenList();
-        
-        HandleErrorToken();
+        HandleError();
     }
 
     void RunLexerFromFile(string fileName)  
     { 
         fstream                         file(fileName, std::fstream::in);
-
         if (!file.is_open()) throw Error("File is not open correctly.");
 
         std::istreambuf_iterator<char>  beg(file), end; 
         std::string                     code(beg, end);
 
         RunLexer(code); 
-
         file.close();
 
     } 

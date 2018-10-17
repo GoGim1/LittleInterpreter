@@ -1,23 +1,10 @@
-
-#include <memory>
-#include <iostream>
-#include <sstream>
 #include "Parser.h"
-#include "Lexer.h"
-#include "Helper.h"
 
 namespace Parse
 {
-    using namespace Lexer;
-
-    using std::make_shared;
-    using std::make_unique;
-    using std::make_pair;
-    using std::stringstream;
-
     PrimaryPtr Parser::ParsePrimary()
     {
-        // Print("ParsePrimary");
+         //Print("ParsePrimary");
         auto t = NextToken();
         //Print(t.Dump());
         if (t.getType() == Token::LBRACKET)
@@ -401,36 +388,6 @@ namespace Parse
         }
 
         return ret;
-    }
-
-    void Parser::HandleError()
-    {
-        if (errorList.empty())  
-            return;
-#ifndef DEBUG
-        for (auto& i : errorList)
-            std::cout << i.what() << std::endl;
-#endif
-        throw errorList.front();
-    }
-
-    void Parser::AddError(const Error& e)
-    {
-        errorList.push_back(e);
-    }
-
-    // (DEBUG)
-    void Parser::PrintError()
-    {
-        std::cout << DumpError() << std::endl;
-    }
-
-    string Parser::DumpError()
-    {
-        stringstream s;
-        for (auto& i : errorList)
-            s << i.what() << std::endl;
-        return s.str();
     }
 
     string Parser::Dump()

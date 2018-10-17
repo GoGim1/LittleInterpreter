@@ -1,13 +1,10 @@
 #pragma once 
 
-#include <iostream>
 #include <string>
-#include <memory>
 
 namespace Lexer
 {
     using std::string;
-    using std::unique_ptr;
 
  
     class Token
@@ -36,10 +33,8 @@ namespace Lexer
             return *this;
         }
 
-        // (DEBUG)
         string Dump()
         {
-           // std::cout << type << " " << value << " " << posY << ", "<< posX << std::endl;
             return value;
         }
 

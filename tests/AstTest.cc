@@ -1,13 +1,6 @@
 #include <gtest/gtest.h>
-#include <memory>
-#include <iostream>
 #include "Ast.h"
-#include "Token.h"
-#include "Helper.h"
 
-
-using namespace std;
-using namespace Lexer;
 using namespace Ast;
 
 TEST(Ast, CorrectDump) 
@@ -65,7 +58,54 @@ TEST(Ast, CorrectDump)
     pProgram->ListHandler(pStatementWithIfElse);
     pProgram->ListHandler(pStatementWithWhile);
     ASSERT_EQ(pProgram->Dump(), "3+-id;if -id{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else{3+-id;3+-id;};while 3+-id{3+-id;3+-id;};");
+}
 
+TEST(Ast, Eval)
+{
+    {
+        auto lhs = MakeTokenPtr(Token::INTEGER, "3");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), 3);
+    }
+    {
+        auto lhs = MakeTokenPtr(Token::INTEGER, "0");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), 0);
+    }
+    {
+        auto lhs = MakeTokenPtr(Token::FLOAT, "3.0");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), 3.0);
+    }
+    {
+        auto lhs = MakeTokenPtr(Token::FLOAT, "0.0");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), 0.0);
+    }
+    {
+        auto lhs = MakeTokenPtr(Token::INTEGER, "3");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), 3);
+    }
+    {
+        auto lhs = MakeTokenPtr(Token::FLOAT, "-3.0");
+        auto pPrimaryLhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryLhs->Eval(), -3.0);
+    }
 
+    
+}
 
+TEST(Ast, Env)
+{
+    {
+        Env["id"] = 1;
+        auto lhs = MakeTokenPtr(Token::IDENTIFIER, "id");
+        auto pPrimaryRhs = MakePrimaryPtr(nullptr, lhs);
+        ASSERT_EQ(pPrimaryRhs->Eval(), 1.0);
+
+        auto pFactorRhs = MakeFactorPtr(pPrimaryRhs, MakeTokenPtr(Token::SUB, "-"));
+        ASSERT_EQ(pFactorRhs->Dump(), "-id");
+        ASSERT_EQ(pFactorRhs->Eval(), -1);     
+    }
 }

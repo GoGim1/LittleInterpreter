@@ -1,16 +1,29 @@
 #pragma once 
 
 #include <string>
+#include <fstream>
+#include <list>
+#include <regex>
+#include <iterator>
+#include <unordered_map>
+#include <vector>
+#include "Error.h"
+#include "Helper.h"
 #include "Token.h"
 
 namespace Lexer
-{
+{    
+    using namespace Util;
+
+    using std::vector;
+    using std::fstream;
+    using std::list;
     using std::string;
 
-    extern Token NextToken();
-    extern Token PeekToken();
-
-    extern void RunLexer(string code);
-    extern void RunLexerFromFile(string fileName);
+    Token NextToken();
+    Token PeekToken();
+    
+    void RunLexer(string code);
+    void RunLexerFromFile(string fileName);
 
 };

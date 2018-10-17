@@ -1,23 +1,25 @@
 #pragma once
-
+#include <sstream>
+#include <utility>
 #include <memory>
 #include <string>
 #include <vector>
 #include <utility>
-#include <cassert>
 #include "Token.h"
 #include "Helper.h"
-
+#include "Environment.h"
 
 namespace Ast
 {
     using namespace Lexer;
+    using namespace Environment;
 
+    using std::stringstream;
+    using std::make_pair;
     using std::shared_ptr;
     using std::string;
     using std::vector;
     using std::pair;
-    using std::make_shared;
     
     class AstNode //: public std::enable_shared_from_this<AstNode>
     {
@@ -25,6 +27,7 @@ namespace Ast
         AstNode() {}
         virtual         ~AstNode() {}
         virtual string  Dump() const = 0;
+        virtual double  Eval() = 0;
     };
 
     class PrimaryNode;
@@ -48,7 +51,6 @@ namespace Ast
     class PrimaryNode : public AstNode
     {
     public:
-        //TODO: const reference
         PrimaryNode(const ExprPtr& pExprRhs, const TokenPtr& pTokenRhs) : pExpr(pExprRhs), pToken(pTokenRhs) 
         {
             Assert((!pToken && pExpr)||(pToken && !pExpr), "PrimaryNode must have one and only one non-nullptr member.");            
@@ -56,7 +58,7 @@ namespace Ast
         virtual                 ~PrimaryNode() {}
         
         virtual string          Dump() const override;
-
+        virtual double          Eval() override;
     private:
         ExprPtr                 pExpr   = nullptr;
         TokenPtr                pToken  = nullptr;
@@ -75,7 +77,8 @@ namespace Ast
         virtual             ~FactorNode() {}
         
         virtual string      Dump() const override;
-
+        virtual double      Eval() override;
+        
     private:
         PrimaryPtr          pPrimary    = nullptr;
         TokenPtr            pToken      = nullptr;
@@ -95,7 +98,7 @@ namespace Ast
         virtual             ~ExprNode() {}
         
         virtual string      Dump() const override;
-
+        virtual double      Eval() override;
         void                ListHandler(const TokenPtr&, const FactorPtr&);
     private:
         FactorPtr           pFactor     = nullptr;
@@ -106,12 +109,13 @@ namespace Ast
     class BlockNode : public AstNode
     {
     public:
-        typedef vector<StatementPtr>                    List;
+        typedef vector<StatementPtr> List;
 
         BlockNode(const StatementPtr& pStatementRhs): pStatement(pStatementRhs) {}
         virtual                 ~BlockNode() {}
         
         virtual string          Dump() const override;
+        virtual double          Eval() override;        
         void                    ListHandler(const StatementPtr&);
     private:
         StatementPtr            pStatement;
@@ -129,6 +133,7 @@ namespace Ast
         virtual             ~SimpleNode() {}
         
         virtual string      Dump() const override;
+        virtual double      Eval() override;
 
     private:
         ExprPtr             pExpr   = nullptr;
@@ -142,10 +147,9 @@ namespace Ast
         enum Type { UNKNOWN, IF, IFELSE, WHILE, SIMPLE };
 
         StatementNode(const Type& typeRhs, const ExprPtr& pExprRhs, const BlockPtr& pBlockRhs, const BlockPtr& pBlockOfElseRhs, const SimplePtr& pSimpleRhs):
-            type(typeRhs), pExpr(pExprRhs), pBlock(pBlockRhs), pBlockOfElse(pBlockOfElseRhs), pSimple(pSimpleRhs) {} 
-        virtual                 ~StatementNode() 
+            type(typeRhs), pExpr(pExprRhs), pBlock(pBlockRhs), pBlockOfElse(pBlockOfElseRhs), pSimple(pSimpleRhs) 
         {
-            #ifdef DEBUG
+#ifdef DEBUG
             switch (type)
             {
             case IF:
@@ -164,10 +168,12 @@ namespace Ast
                 Assert(1, "StatementNode must have type.");
                 break;
             }
-            #endif
-        }
+#endif
+        } 
+        virtual                 ~StatementNode() {}
         
         virtual string          Dump() const override;
+        virtual double          Eval() override;
 
     private:
 
@@ -188,6 +194,7 @@ namespace Ast
         virtual             ~ProgramNode() {}
         
         virtual string      Dump() const override;
+        virtual double      Eval() override;        
         void                ListHandler(const StatementPtr&);
     private:
         List                statementList;

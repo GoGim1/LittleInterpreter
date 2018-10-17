@@ -1,10 +1,15 @@
 #pragma once 
 
+#include <vector>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <exception>
 
+
 namespace Util
 {
+    using std::vector;
     using std::string;
     using std::exception;
 
@@ -28,10 +33,18 @@ namespace Util
         }
 
     private:
-
         string      msg;
         int         posX;
         int         posY;
         
     };
+
+#ifdef DEBUG
+    void     PrintError();   
+#endif 
+
+    string   DumpError(); 
+    void     HandleError();
+    void     AddError(const Error&);
+    
 };

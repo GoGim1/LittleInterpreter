@@ -2,7 +2,6 @@
 #include "Lexer.h"
 
 using namespace Lexer;
-
 // var i = 2;
 // if (i == 2.0)
 // {
@@ -84,4 +83,18 @@ TEST(Lexer, Basic)
     ASSERT_EQ(PeekToken().getValue(), "EOF");
     ASSERT_EQ(NextToken().getType(), Token::Type::_EOF);
 
+}
+
+TEST(Lexer, Error) 
+{
+    HandleTry
+        RunLexer(R"( \ ~
+`   ~)");
+    HandleCatch
+        ASSERT_EQ(DumpError(), R"TEST([Line 0, 1]: Unknown token: "\".
+[Line 0, 3]: Unknown token: "~".
+[Line 1, 0]: Unknown token: "`".
+[Line 1, 4]: Unknown token: "~".
+)TEST");
+    HandleEnd
 }
