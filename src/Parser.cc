@@ -1,6 +1,3 @@
-// TODO: 1.职责问题，如1+/2, 应该是parse factor 1+/2时候报错，还是parse primary /2时候报错?
-//       2.错误传播问题：孙级parse出错，AddError并返回给子级nullptr， 但是会触发Assert警告。
-//          应该在子级防止孙级parse出错，传nullptr给父级；还是。。。
 
 #include <memory>
 #include <iostream>
@@ -112,7 +109,15 @@ namespace Parse
         while (peekToken.getType() == Token::PLUS ||
                peekToken.getType() == Token::MUL ||
                peekToken.getType() == Token::SUB ||
-               peekToken.getType() == Token::DIV)
+               peekToken.getType() == Token::DIV ||
+               peekToken.getType() == Token::GE ||
+               peekToken.getType() == Token::LE ||
+               peekToken.getType() == Token::EQUAL ||
+               peekToken.getType() == Token::LESS ||
+               peekToken.getType() == Token::GREATER ||
+               peekToken.getType() == Token::MOD ||
+               peekToken.getType() == Token::ASSIGN 
+               )
         {
             // The function parameters are read in order from right to left.
             auto p = MakeTokenPtr(NextToken());
@@ -284,8 +289,8 @@ namespace Parse
     SimplePtr Parser::ParseSimple()
     {
         //Print("ParseSimple");
-        auto pParseExpr = ParseExpr();
         auto simpleFirstToken = PeekToken();
+        auto pParseExpr = ParseExpr();
         if (!pParseExpr) 
         {
             AddError(Error("SimpleNode error: parsing Expr error.", simpleFirstToken.getPosX(), simpleFirstToken.getPosY()));
@@ -402,8 +407,10 @@ namespace Parse
     {
         if (errorList.empty())  
             return;
+#ifndef DEBUG
         for (auto& i : errorList)
             std::cout << i.what() << std::endl;
+#endif
         throw errorList.front();
     }
 
@@ -413,10 +420,17 @@ namespace Parse
     }
 
     // (DEBUG)
-    void Parser::DumpErrorList()
+    void Parser::PrintError()
     {
+        std::cout << DumpError() << std::endl;
+    }
+
+    string Parser::DumpError()
+    {
+        stringstream s;
         for (auto& i : errorList)
-            std::cout << i.what() << std::endl;
+            s << i.what() << std::endl;
+        return s.str();
     }
 
     string Parser::Dump()

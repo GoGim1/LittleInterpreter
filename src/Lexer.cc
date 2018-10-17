@@ -96,6 +96,9 @@ namespace Lexer
         reservedTable[">="] = Token::GE;
         reservedTable["<="] = Token::LE;
         reservedTable["=="] = Token::EQUAL;
+        reservedTable[">"] = Token::GREATER;
+        reservedTable["<"] = Token::LESS;
+        reservedTable["%"] = Token::MOD;
         reservedTable["="] = Token::ASSIGN;
         reservedTable["+"] = Token::PLUS;
         reservedTable["-"] = Token::SUB;

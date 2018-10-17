@@ -272,185 +272,325 @@ TEST(Parser, Build)
     }     
 }
 
-TEST(Parser, Error) 
+TEST(Parser, ErrorStep) 
 {   
     {
         RunLexer("(3");
         Parser parser;
         auto p = parser.ParsePrimary();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 2]: PrimaryNode error: missing ")".
+)TEST");
     }   
     {
         RunLexer("/3");
         Parser parser;
         auto p = parser.ParsePrimary();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 0]: PrimaryNode error: "/" can not be a part of PrimaryNode.
+)TEST");
     }    
     {
         RunLexer("-*5");
         Parser parser;
         auto p = parser.ParseFactor();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 1]: PrimaryNode error: "*" can not be a part of PrimaryNode.
+[Line 0, 1]: FactorNode error: missing PrimaryNode.
+)TEST");
     }    
     {
         RunLexer("(3");
         Parser parser;
         auto p = parser.ParseFactor();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 2]: PrimaryNode error: missing ")".
+[Line 0, 0]: FactorNode error: parsing Primary error.
+)TEST");
     }  
     {
         RunLexer("+");
         Parser parser;
         auto p = parser.ParseFactor();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 1]: PrimaryNode error: "EOF" can not be a part of PrimaryNode.
+[Line 0, 1]: FactorNode error: missing PrimaryNode.
+)TEST");
     }   
     {
         RunLexer(" (3 + 2  }");
         Parser parser;
         auto p = parser.ParseFactor();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 9]: PrimaryNode error: missing ")".
+[Line 0, 1]: FactorNode error: parsing Primary error.
+)TEST");
     } 
  
     {
         RunLexer("3++");
         Parser parser;
         auto p = parser.ParseExpr();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 3]: PrimaryNode error: "EOF" can not be a part of PrimaryNode.
+[Line 0, 3]: FactorNode error: missing PrimaryNode.
+[Line 0, 2]: ExprNode error: parsing Factor list error.
+)TEST");
     }   
     {
         RunLexer("3+{");
         Parser parser;
         auto p = parser.ParseExpr();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 2]: ExprNode error: FactorNode miss after operator.
+)TEST");
     }  
     {
         RunLexer("==3+");
         Parser parser;
         auto p = parser.ParseExpr();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 0]: FactorNode error: "==" should be "+", "-", indentifier, integer or float.
+[Line 0, 0]: ExprNode error: parsing the first Factor error.
+)TEST");
     }   
     {
         RunLexer("58");
         Parser parser;
         auto p = parser.ParseBlock();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 0]: BlockNode error: BlockNode must start with "{".
+)TEST");
     }   
 
     {
         RunLexer("{");
         Parser parser;
         auto p = parser.ParseBlock();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 1]: FactorNode error: "EOF" should be "+", "-", indentifier, integer or float.
+[Line 0, 1]: ExprNode error: parsing the first Factor error.
+[Line 0, 1]: SimpleNode error: parsing Expr error.
+[Line 0, 1]: StatementNode error: parsing Simple error.
+[Line 0, 1]: BlockNode error: parsing the first Statement error.
+)TEST");
     }   
     {
         RunLexer("{33+");
         Parser parser;
         auto p = parser.ParseBlock();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 4]: ExprNode error: FactorNode miss after operator.
+[Line 0, 1]: SimpleNode error: parsing Expr error.
+[Line 0, 1]: StatementNode error: parsing Simple error.
+[Line 0, 1]: BlockNode error: parsing the first Statement error.
+)TEST");
     }   
     {
         RunLexer("{33+6");
         Parser parser;
         auto p = parser.ParseBlock();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 5]: BlockNode error: BlockNode must end with "}".
+)TEST");
     }   
     {
         RunLexer("{33+6;;*35");
         Parser parser;
         auto p = parser.ParseBlock();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 7]: FactorNode error: "*" should be "+", "-", indentifier, integer or float.
+[Line 0, 7]: ExprNode error: parsing the first Factor error.
+[Line 0, 7]: SimpleNode error: parsing Expr error.
+[Line 0, 7]: StatementNode error: parsing Simple error.
+[Line 0, 7]: BlockNode error: parsing statement list error.
+)TEST");
     }   
  
     {
         RunLexer("if ");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 3]: FactorNode error: "EOF" should be "+", "-", indentifier, integer or float.
+[Line 0, 3]: ExprNode error: parsing the first Factor error.
+[Line 0, 3]: StatementNode error: parsing Expr error when parsing IF Statement.
+)TEST");
     }  
     {
         RunLexer("if (+2)else");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 7]: BlockNode error: BlockNode must start with "{".
+[Line 0, 7]: StatementNode error: parsing Block error when parsing IF Statement.
+)TEST");
     }  
     {
         RunLexer("if (30**2)else");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 7]: ExprNode error: FactorNode miss after operator.
+[Line 0, 4]: PrimaryNode error: parsing Expr error.
+[Line 0, 3]: FactorNode error: parsing Primary error.
+[Line 0, 3]: ExprNode error: parsing the first Factor error.
+[Line 0, 3]: StatementNode error: parsing Expr error when parsing IF Statement.
+)TEST");
     }  
     {
         RunLexer("if (30*2)else {");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 9]: BlockNode error: BlockNode must start with "{".
+[Line 0, 9]: StatementNode error: parsing Block error when parsing IF Statement.
+)TEST");
     }  
     {
         RunLexer("if (30*2){30*2)");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 14]: BlockNode error: BlockNode must end with "}".
+[Line 0, 9]: StatementNode error: parsing Block error when parsing IF Statement.
+)TEST");
     }  
     {
         RunLexer("if (30*2){30*2; ;}else)");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 22]: BlockNode error: BlockNode must start with "{".
+[Line 0, 22]: StatementNode error: parsing Block error when parsing IFELSE Statement.
+)TEST");
     }  
     {
         RunLexer("while(30*2){30*2; ;)");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 19]: FactorNode error: ")" should be "+", "-", indentifier, integer or float.
+[Line 0, 19]: ExprNode error: parsing the first Factor error.
+[Line 0, 19]: SimpleNode error: parsing Expr error.
+[Line 0, 19]: StatementNode error: parsing Simple error.
+[Line 0, 19]: BlockNode error: parsing statement list error.
+[Line 0, 11]: StatementNode error: parsing Block error when parsing WHILE Statement.
+)TEST");
     }    
     {
         RunLexer("while(30*2{30*2; ;)");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 10]: PrimaryNode error: missing ")".
+[Line 0, 5]: FactorNode error: parsing Primary error.
+[Line 0, 5]: ExprNode error: parsing the first Factor error.
+[Line 0, 5]: StatementNode error: parsing Expr error when parsing WHILE Statement.
+)TEST");
     }  
     {
         RunLexer("while");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 5]: FactorNode error: "EOF" should be "+", "-", indentifier, integer or float.
+[Line 0, 5]: ExprNode error: parsing the first Factor error.
+[Line 0, 5]: StatementNode error: parsing Expr error when parsing WHILE Statement.
+)TEST");
     }  
     {
         RunLexer("while(30*2))");
         Parser parser;
         auto p = parser.ParseStatement();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 11]: BlockNode error: BlockNode must start with "{".
+[Line 0, 11]: StatementNode error: parsing Block error when parsing WHILE Statement.
+)TEST");
     }   
 
     {
         RunLexer("while(30*2))");
         Parser parser;
         auto p = parser.ParseProgram();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 11]: BlockNode error: BlockNode must start with "{".
+[Line 0, 11]: StatementNode error: parsing Block error when parsing WHILE Statement.
+[Line 0, 0]: Program error: parsing Statement list error.
+)TEST");
     }   
     {
         RunLexer("while(30*2){}if(){})");
         Parser parser;
         auto p = parser.ParseProgram();
-        parser.DumpErrorList();
+        ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 13]: Program error: Statement list should be separated by ";".
+)TEST");
     }   
-
-    // ExceptionBegin
-    //     RunLexer("(3 + 2  }");
-    //     Parser parser;
-    //     parser.RunParser();  
-    //     parser.DumpErrorList();
-    // ExceptionEnd  
-    // {
-    //     RunLexer("/3");
-    //     Parser parser;
-    //     parser.RunParser();  
-    //     parser.DumpErrorList();
-    // }   
-
 }
 
 
 
+TEST(Parser, Error) 
+{
+    {    
+        Parser parser;
+        HandleTry
+            RunLexer("(3 + 2  }");
+            parser.RunParser();  
+        HandleCatch
+            ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 8]: PrimaryNode error: missing ")".
+[Line 0, 0]: FactorNode error: parsing Primary error.
+[Line 0, 0]: ExprNode error: parsing the first Factor error.
+[Line 0, 0]: SimpleNode error: parsing Expr error.
+[Line 0, 0]: StatementNode error: parsing Simple error.
+[Line 0, 0]: Program error: parsing Statement list error.
+)TEST");
+        HandleEnd  
+    }
+    {    
+        Parser parser;
+        HandleTry
+            RunLexer("/3");
+            parser.RunParser();  
+        HandleCatch
+            ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 0]: FactorNode error: "/" should be "+", "-", indentifier, integer or float.
+[Line 0, 0]: ExprNode error: parsing the first Factor error.
+[Line 0, 0]: SimpleNode error: parsing Expr error.
+[Line 0, 0]: StatementNode error: parsing Simple error.
+[Line 0, 0]: Program error: parsing Statement list error.
+)TEST");
+        HandleEnd  
+    }
 
+    {    
+        Parser parser;
+        HandleTry
+            RunLexer("+");
+            parser.RunParser();  
+        HandleCatch
+            ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 1]: PrimaryNode error: "EOF" can not be a part of PrimaryNode.
+[Line 0, 1]: FactorNode error: missing PrimaryNode.
+[Line 0, 0]: ExprNode error: parsing the first Factor error.
+[Line 0, 0]: SimpleNode error: parsing Expr error.
+[Line 0, 0]: StatementNode error: parsing Simple error.
+[Line 0, 0]: Program error: parsing Statement list error.
+)TEST");
+        HandleEnd  
+    }
+
+
+    {    
+        Parser parser;
+        HandleTry
+            RunLexer("{ 1 + 2; }");
+            parser.RunParser();  
+        HandleCatch
+            //parser.PrintError();
+            ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 0]: FactorNode error: "{" should be "+", "-", indentifier, integer or float.
+[Line 0, 0]: ExprNode error: parsing the first Factor error.
+[Line 0, 0]: SimpleNode error: parsing Expr error.
+[Line 0, 0]: StatementNode error: parsing Simple error.
+[Line 0, 0]: Program error: parsing Statement list error.
+)TEST");
+        HandleEnd  
+    }
+    {    
+        Parser parser;
+        HandleTry
+            RunLexer("while(30*2){}if(){})");
+            parser.RunParser();  
+        HandleCatch
+            ASSERT_EQ(parser.DumpError(), R"TEST([Line 0, 13]: Program error: Statement list should be separated by ";".
+)TEST");
+        HandleEnd  
+    }
+
+
+}
+
+TEST(Parser, File)
+{
+    {
+        RunLexerFromFile("../tests/testcases/ParserCase.txt");
+        Parser parser;
+        parser.RunParser();
+     //   cout << parser.Dump();
+        
+    }
+}
 

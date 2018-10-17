@@ -24,7 +24,8 @@ namespace Parse
         void            AddError(const Error&);
 
         // (DEBUG)
-        void            DumpErrorList();
+        void            PrintError();        
+        string          DumpError();
         string          Dump();
     private:
         ProgramPtr      program;

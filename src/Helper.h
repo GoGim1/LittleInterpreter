@@ -18,14 +18,15 @@ using std::endl;
 #define Print(str)          cout << (str) << endl
 #define Assert(a, b)        assert((a) && (b))
 
-#define ExceptionBegin      \
+#define HandleTry           \
 try                         \
 {                               
-#define ExceptionEnd        \
+#define HandleCatch         \
 }                           \
 catch (Error& e)            \
-{}
-
+{
+#define HandleEnd           \
+}
 #else 
 #define Print(str)  
 #define Assert(a, b)        
