@@ -55,6 +55,12 @@ namespace Ast
         return pToken->getValue();
     }
 
+    const pair<int, int> PrimaryNode::GetIdentifierPos() const
+    {
+        Assert(pToken, "pToken is not exist.");
+        return { pToken->getPosX(), pToken->getPosY() };
+    }
+    
 
     /*************************************************************
 		FactorNode
@@ -89,6 +95,11 @@ namespace Ast
         return pPrimary->GetIdentifierName();
     }
 
+
+    const pair<int, int> FactorNode::GetIdentifierPos() const
+    {
+        return pPrimary->GetIdentifierPos();
+    }
     /*************************************************************
 		ExprNode
     *************************************************************/
@@ -104,8 +115,12 @@ namespace Ast
     // TODO 1.未定义标识符 2.定义标识符 3.不能赋值给右值 4.赋值给标识符
     variant<int, double> ExprNode::Eval()
     {
-        vector<TokenPtr>                                    opStack;
-        vector<variant< variant<int, double>, string> >     valStack;
+        using NumValue          = variant<int, double>;
+        using IdentifierValue   = tuple<string, int, int>;  // identifier's value, posX and posY
+        using valStackItem      = variant<NumValue, IdentifierValue>;
+
+        vector<TokenPtr>        opStack;
+        vector<valStackItem>    valStack;
 
         auto opTokenToInt = [](const TokenPtr& p) -> int
         {
@@ -136,18 +151,64 @@ namespace Ast
 
         auto stackCalculate = [&]()
         {
-            auto tmp = valStack.back();
-            auto rhs = std::holds_alternative<variant<int, double>>(tmp) ? 
-                        GET((std::get<variant<int, double>>(tmp))) : GET(Env[std::get<string>(tmp)]);
+            /*****************************************************
+             * deal with the most top Item
+             *****************************************************/
+            auto item = valStack.back();
+            auto rhsNumValue = NumValue{}; //store the NumValue in Item 
+            bool isNumValue = std::holds_alternative<NumValue>(item);
+            if (!isNumValue) // rhsItemType is IdentifierValue 
+            {
+                auto _IdentifierValue = get<IdentifierValue>(item);
+                if (Env.find(get<0>(_IdentifierValue)) == Env.end())   
+                    throw Error("Runtime error: " + get<0>(_IdentifierValue) + " undefined.", 
+                        get<1>(_IdentifierValue), get<2>(_IdentifierValue));
+                else 
+                    rhsNumValue = Env[get<0>(_IdentifierValue)];
+            }
+            else // rhsItemType is NumValue 
+                rhsNumValue = get<NumValue>(item);
+            auto rhs = GET(rhsNumValue);  // get the double or int value
             valStack.pop_back();
 
-            tmp = valStack.back();
-            auto lhs = std::holds_alternative<variant<int, double>>(tmp) ? 
-                        GET((std::get<variant<int, double>>(tmp))) : GET(Env[std::get<string>(tmp)]);
-            valStack.pop_back();
-
+            /***********************************************************
+             * deal with the second top Item
+             ***********************************************************/
             TokenPtr op = opStack.back();
             opStack.pop_back();
+            bool isAssign = op->getType() == Token::ASSIGN;
+
+            /**************************************************************
+             * deal with the second top Item
+             **************************************************************/
+            item = valStack.back();
+            auto lhsNumValue = NumValue{0}; //store the NumValue in Item 
+            isNumValue = std::holds_alternative<NumValue>(item);
+            if (!isNumValue) // lhsItemType is IdentifierValue 
+            {
+                auto _IdentifierValue = get<IdentifierValue>(item);
+                if (Env.find(get<0>(_IdentifierValue)) == Env.end())  
+                {
+                    if (isAssign)
+                        Env[get<0>(_IdentifierValue)] = NumValue{0};
+                    else 
+                        throw Error("Runtime error: " + get<0>(_IdentifierValue) + " undefined.", 
+                            get<1>(_IdentifierValue), get<2>(_IdentifierValue));
+                } 
+                else 
+                    lhsNumValue = Env[get<0>(_IdentifierValue)];
+            }
+            else // lhsItemType is NumValue 
+            {
+                if (isAssign)
+                    throw Error("Runtime error: can not assign to r-value.", op->getPosX(), op->getPosX());
+                else
+                    lhsNumValue = get<NumValue>(item);
+            } 
+            auto lhs = GET(lhsNumValue);  // get the double or int value
+            valStack.pop_back();
+
+            
 
             switch (op->getType())
             {
@@ -186,7 +247,7 @@ namespace Ast
                 valStack.push_back((int)(lhs==rhs));
                 break;
             case Token::ASSIGN:   
-                Assert(0, "assign have not been implenment.");
+                Env[get<0>(get<IdentifierValue>(item))] = rhs;
                 break;
             default:
                 Assert(0, "error type in stackCalculate.");   
@@ -194,7 +255,8 @@ namespace Ast
         };
 
         if (pFactor->isIdentifier()) 
-            valStack.push_back(pFactor->GetIdentifierName());
+            valStack.push_back(make_tuple(pFactor->GetIdentifierName(), 
+                                    pFactor->GetIdentifierPos().first, pFactor->GetIdentifierPos().second));
         else 
             valStack.push_back(pFactor->Eval());
         opStack.push_back(MakeTokenPtr(Token::ASSIGN));
@@ -205,7 +267,8 @@ namespace Ast
                 stackCalculate();
             opStack.push_back(i.first);
             if (i.second->isIdentifier()) 
-                valStack.push_back(i.second->GetIdentifierName());
+                valStack.push_back(make_tuple(i.second->GetIdentifierName(),
+                                    i.second->GetIdentifierPos().first, i.second->GetIdentifierPos().second));
             else 
                 valStack.push_back(i.second->Eval());
         }
@@ -213,9 +276,8 @@ namespace Ast
         while (valStack.size() != 1)
             stackCalculate();
 
-        // TODO
         auto ret = valStack.back();
-        return std::holds_alternative<variant<int, double>>(ret) ? std::get<variant<int, double>>(ret) : Env[std::get<string>(ret)];
+        return std::holds_alternative<NumValue>(ret) ? get<NumValue>(ret) : Env[get<0>(get<IdentifierValue>(ret))];
     }
     
     void ExprNode::ListHandler(const TokenPtr& pTokenRhs, const FactorPtr& pFactorRhs)

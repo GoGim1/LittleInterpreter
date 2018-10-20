@@ -6,6 +6,7 @@
 #include <vector>
 #include <utility>
 #include <variant>
+#include <tuple>
 #include "Error.h"
 #include "Token.h"
 #include "Helper.h"
@@ -24,7 +25,10 @@ namespace Ast
     using std::vector;
     using std::pair;
     using std::variant;
-
+    using std::tuple;
+    using std::make_tuple;
+    using std::get;
+    
     class AstNode //: public std::enable_shared_from_this<AstNode>
     {
     public:
@@ -62,8 +66,10 @@ namespace Ast
         virtual                         ~PrimaryNode() {}
         virtual const string            Dump() const override;
         virtual variant<int, double>    Eval() override;
+
         bool                            isIdentifier() const;
         const string&                   GetIdentifierName() const;
+        const pair<int, int>            GetIdentifierPos() const;
     private:
         ExprPtr     pExpr               = nullptr;
         TokenPtr    pToken              = nullptr;
@@ -82,8 +88,10 @@ namespace Ast
         virtual                             ~FactorNode() {}
         virtual const string                Dump() const override;
         virtual variant<int, double>        Eval() override;
+
         bool                                isIdentifier() const;
         const string&                       GetIdentifierName() const;
+        const pair<int, int>                GetIdentifierPos() const;
     private:
         PrimaryPtr  pPrimary                = nullptr;
         TokenPtr    pToken                  = nullptr;

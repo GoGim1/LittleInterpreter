@@ -401,8 +401,8 @@ namespace Parse
         HandleError();
     } 
 
-    void Eval() const
+    void Parser::Eval() const
     {
-        
+        cout << GET(program->Eval()) << endl;
     }
 }

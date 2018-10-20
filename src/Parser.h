@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <sstream>  
+#include <iostream>
 #include "Error.h"
 #include "Ast.h"
 #include "Lexer.h"
@@ -14,6 +15,8 @@ namespace Parse
     using namespace Util;
 
     using std::stringstream;
+    using std::cout;
+    using std::endl;
 
     class Parser
     {
@@ -28,6 +31,13 @@ namespace Parse
         void            RunParser();
         const string    Dump() const;
         void            Eval() const;
+
+#ifdef DEBUG
+        variant<int, double> EvalValue() 
+        {
+            return program->Eval();
+        }
+#endif
     private:
         ProgramPtr      program;
     };

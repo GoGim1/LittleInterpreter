@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "Parser.h"
+#include "../src/tools/FloatCompare.h"
 
 using namespace Parse;
 
@@ -579,11 +580,67 @@ TEST(Parser, Error)
 
 TEST(Parser, Eval)
 {
+    Env["id"] = 3.2;
+    {
+        RunLexer("3;");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_TRUE(GET(parser.EvalValue()) == 3);
+    }
+    {
+        RunLexer("(3+-id*2)");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.4));
+    }
+    {
+        RunLexer("-id");
+        Parser parser;
+        parser.RunParser();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.2));
+    }
+    {
+        RunLexer("3+(-id*2)");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.4));
+    }
+    {
+        RunLexer("3+-id*2; ;3+-id*2");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.4));
+    }
+    {
+        RunLexer("if 3+-id*2{3+-id*2; ;3+-id*2;}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.4));
+    }
+    {
+        RunLexer("if 3+-id*2{3+-id*2; ;3+-id*2}else{; ;3+-id*2}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), -3.4));
+    }
+    {
+        RunLexer("if 3+-id*2{}else{;}");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_TRUE(GET(parser.EvalValue()) == 0);
+    }
     // {
-    //     RunLexer("3;");
+    //     RunLexer("while 3+-id*2 {3+-id*2;;}");
     //     Parser parser;
-    //     parser.RunParser();
-    // }
+    //     parser.RunParser();       
+    //     ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()),  ));
+    // } 
+    // {
+    //     RunLexer("3+-id;if -2{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;};while 3+-id{3+-id;3+-id;}");
+    //     Parser parser;
+    //     parser.RunParser();  
+    //     ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()),  ));
+    // }     
 }
 
 TEST(Parser, File)
