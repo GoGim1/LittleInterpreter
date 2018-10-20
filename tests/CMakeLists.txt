@@ -26,3 +26,13 @@ add_executable(Parser_Test
                 ParserTest.cc 
                 )
 target_link_libraries(Parser_Test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(Environment_Test 
+                ../src/Lexer.cc
+                ../src/Ast.cc
+                ../src/Parser.cc
+                ../src/Environment.cc
+                ../src/Error.cc
+                EnvironmentTest.cc 
+                )
+target_link_libraries(Environment_Test gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})

@@ -76,11 +76,23 @@ namespace Ast
 
     variant<int, double> FactorNode::Eval()
     {
+        auto ret = pPrimary->Eval();
+        bool isInt = std::holds_alternative<int>(ret);
+        if (isInt)
+        {
+            if (pToken && pToken->getType() == Token::SUB)
+                return 0 - std::get<int>(pPrimary->Eval());
+            else    
+                return std::get<int>(pPrimary->Eval());
+        }
+        else
+        {
+            if (pToken && pToken->getType() == Token::SUB)
+                return 0 - std::get<double>(pPrimary->Eval());
+            else    
+                return std::get<double>(pPrimary->Eval());
+        }
         
-        if (pToken && pToken->getType() == Token::SUB)
-            return 0 - GET(pPrimary->Eval());
-        else    
-            return GET(pPrimary->Eval());
     }
 
     bool FactorNode::isIdentifier() const
@@ -115,6 +127,7 @@ namespace Ast
     // TODO 1.未定义标识符 2.定义标识符 3.不能赋值给右值 4.赋值给标识符
     variant<int, double> ExprNode::Eval()
     {
+        Print(Dump());        
         using NumValue          = variant<int, double>;
         using IdentifierValue   = tuple<string, int, int>;  // identifier's value, posX and posY
         using valStackItem      = variant<NumValue, IdentifierValue>;
@@ -168,6 +181,9 @@ namespace Ast
             }
             else // rhsItemType is NumValue 
                 rhsNumValue = get<NumValue>(item);
+
+            bool isInt = std::holds_alternative<int>(rhsNumValue);
+            if (isInt)
             auto rhs = GET(rhsNumValue);  // get the double or int value
             valStack.pop_back();
 
@@ -208,7 +224,6 @@ namespace Ast
             auto lhs = GET(lhsNumValue);  // get the double or int value
             valStack.pop_back();
 
-            
 
             switch (op->getType())
             {
@@ -248,6 +263,7 @@ namespace Ast
                 break;
             case Token::ASSIGN:   
                 Env[get<0>(get<IdentifierValue>(item))] = rhs;
+                valStack.push_back(rhs);
                 break;
             default:
                 Assert(0, "error type in stackCalculate.");   
@@ -304,8 +320,8 @@ namespace Ast
             return pStatement->Eval();
         if (!statementList.empty())
         {
-            if (pStatement) pStatement->Eval();
-            
+            if (pStatement) 
+                pStatement->Eval();
             auto ret = variant<int, double>{};
             for (auto& i : statementList)
                 if (i)
@@ -374,6 +390,7 @@ namespace Ast
         }
         case IF:
         {
+                        
             auto ret = variant<int, double>{0};
             if (GET(pExpr->Eval()))
                 ret = pBlock->Eval();
@@ -381,9 +398,12 @@ namespace Ast
         }
         case IFELSE:
         {
+            Print("IFELSE");
             auto ret = variant<int, double>{0};
             if (GET(pExpr->Eval()))
+            {
                 ret = pBlock->Eval();
+            }
             else 
                 ret = pBlockOfElse->Eval();
             return ret;
