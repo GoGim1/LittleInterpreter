@@ -2,5 +2,5 @@
 
 namespace Environment
 {
-    unordered_map<string, double> Env;
+    unordered_map<string, variant<int, double>> Env;
 } // Environment

@@ -10,6 +10,16 @@
 #define MakePrimaryPtr      std::make_shared<PrimaryNode>
 #define MakeTokenPtr        std::make_shared<Token>
 
+// VARIANT run two times.
+// #define GET(VARIANT) 
+// (std::holds_alternative<int>(VARIANT) ? std::get<int>(VARIANT) : std::get<double>(VARIANT))
+#define GET(VARIANT)                                                                    \
+({                                                                                      \
+    auto _tmp = (VARIANT);                                                              \
+    (std::holds_alternative<int>(_tmp) ? std::get<int>(_tmp) : std::get<double>(_tmp)); \
+})
+
+
 
 #ifdef DEBUG
 #include <iostream>

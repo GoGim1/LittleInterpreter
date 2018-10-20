@@ -373,13 +373,13 @@ namespace Parse
                 auto pParseStatement = ParseStatement();
                 if (!pParseStatement)
                 {
-                    AddError(Error("Program error: parsing Statement list error.", peek.getPosX(), peek.getPosY()));
+                    AddError(Error("ProgramNode error: parsing Statement list error.", peek.getPosX(), peek.getPosY()));
                     return nullptr;
                 }
                 ret->ListHandler(pParseStatement);
                 if (PeekToken().getType() != Token::SEMICOLON && PeekToken().getType() != Token::_EOF)
                 {
-                    AddError(Error(R"(Program error: Statement list should be separated by ";".)", PeekToken().getPosX(), PeekToken().getPosY()));
+                    AddError(Error(R"(ProgramNode error: Statement list should be separated by ";".)", PeekToken().getPosX(), PeekToken().getPosY()));
                     return nullptr;
                 }
             }
@@ -390,7 +390,7 @@ namespace Parse
         return ret;
     }
 
-    string Parser::Dump()
+    const string Parser::Dump() const
     {  
         return program->Dump(); 
     }
@@ -400,4 +400,9 @@ namespace Parse
         program = ParseProgram(); 
         HandleError();
     } 
+
+    void Eval() const
+    {
+        
+    }
 }

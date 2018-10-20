@@ -43,7 +43,7 @@ namespace Util
     void     PrintError();   
 #endif 
 
-    string   DumpError(); 
+    const string   DumpError(); 
     void     HandleError();
     void     AddError(const Error&);
     

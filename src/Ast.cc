@@ -2,7 +2,10 @@
 
 namespace Ast
 {
-    string PrimaryNode::Dump() const
+    /*************************************************************
+		PrimaryNode
+    *************************************************************/
+    const string PrimaryNode::Dump() const
     {
         stringstream ret;
         if (pExpr)
@@ -12,7 +15,7 @@ namespace Ast
         return ret.str();
     }
 
-    double PrimaryNode::Eval() 
+    variant<int, double> PrimaryNode::Eval() 
     {
         if (pToken)
         {
@@ -26,9 +29,8 @@ namespace Ast
                 auto value = Env.find(pToken->getValue()); 
                 if (value != Env.end())
                     return value->second;
-                // TODO: could not find out the identifier
                 else 
-                {}
+                    throw Error("Runtime error: "+ pToken->getValue() +" is undefined.", pToken->getPosX(), pToken->getPosY());
             }
             default:
                 Assert(0, "Eval Primary error");
@@ -40,8 +42,24 @@ namespace Ast
         Assert(0, "Eval Primary error");        
     }
     
+    bool PrimaryNode::isIdentifier() const
+    {
+        if (pToken && pToken->getType() == Token::IDENTIFIER) 
+            return true;
+        return false;
+    }
 
-    string FactorNode::Dump() const
+    const string& PrimaryNode::GetIdentifierName() const
+    {
+        Assert(pToken->getType() == Token::IDENTIFIER, "GetIdentifierName error, token is not an IDENTIFIER type.");
+        return pToken->getValue();
+    }
+
+
+    /*************************************************************
+		FactorNode
+    *************************************************************/
+    const string FactorNode::Dump() const
     {
         stringstream ret;
         if (pToken)
@@ -50,16 +68,31 @@ namespace Ast
         return ret.str();
     }
 
-    double FactorNode::Eval()
+    variant<int, double> FactorNode::Eval()
     {
-        if (pToken->getType() == Token::SUB)
-            return 0 - pPrimary->Eval();
+        
+        if (pToken && pToken->getType() == Token::SUB)
+            return 0 - GET(pPrimary->Eval());
         else    
-            return pPrimary->Eval();
+            return GET(pPrimary->Eval());
     }
 
+    bool FactorNode::isIdentifier() const
+    {
+        if (!pToken && pPrimary->isIdentifier()) 
+            return true;
+        return false;
+    }
 
-    string ExprNode::Dump() const
+    const string& FactorNode::GetIdentifierName() const
+    {
+        return pPrimary->GetIdentifierName();
+    }
+
+    /*************************************************************
+		ExprNode
+    *************************************************************/
+    const string ExprNode::Dump() const
     {
         stringstream ret;
         ret << pFactor->Dump();
@@ -68,25 +101,121 @@ namespace Ast
         return ret.str();  
     }
 
-    double ExprNode::Eval()
+    // TODO 1.未定义标识符 2.定义标识符 3.不能赋值给右值 4.赋值给标识符
+    variant<int, double> ExprNode::Eval()
     {
-        int ret = pFactor->Eval();
+        vector<TokenPtr>                                    opStack;
+        vector<variant< variant<int, double>, string> >     valStack;
+
+        auto opTokenToInt = [](const TokenPtr& p) -> int
+        {
+
+            switch (p->getType())
+            {
+            case Token::DIV:    
+            case Token::MUL:    
+            case Token::MOD: 
+                return 4;   
+            case Token::PLUS:    
+            case Token::SUB:  
+                return 3;  
+            case Token::GREATER:    
+            case Token::GE:    
+            case Token::LESS:    
+            case Token::LE: 
+                return 2;   
+            case Token::EQUAL:
+                return 1;
+            case Token::ASSIGN:
+                return 0;    
+            default:
+                Assert(0, "error type in opTokenToInt.");   
+                return -1;                         
+            }
+        };
+
+        auto stackCalculate = [&]()
+        {
+            auto tmp = valStack.back();
+            auto rhs = std::holds_alternative<variant<int, double>>(tmp) ? 
+                        GET((std::get<variant<int, double>>(tmp))) : GET(Env[std::get<string>(tmp)]);
+            valStack.pop_back();
+
+            tmp = valStack.back();
+            auto lhs = std::holds_alternative<variant<int, double>>(tmp) ? 
+                        GET((std::get<variant<int, double>>(tmp))) : GET(Env[std::get<string>(tmp)]);
+            valStack.pop_back();
+
+            TokenPtr op = opStack.back();
+            opStack.pop_back();
+
+            switch (op->getType())
+            {
+            case Token::DIV:    
+                if (rhs == 0) 
+                    throw Error("Runtime error: denominator of div operator can't be zero.", op->getPosX(), op->getPosY());
+                valStack.push_back(lhs/rhs);
+                break;
+            case Token::MUL:      
+                valStack.push_back(lhs*rhs);
+                break; 
+            case Token::MOD:    
+                if (typeid(rhs) == typeid(double) || typeid(lhs)== typeid(double))
+                    throw Error("Runtime error: parameters of mod operator can't be double.", op->getPosX(), op->getPosY());
+                valStack.push_back((int)lhs%(int)rhs);
+                break;
+            case Token::PLUS:     
+                valStack.push_back(lhs+rhs);
+                break;  
+            case Token::SUB:     
+                valStack.push_back(lhs-rhs);
+                break;
+            case Token::GREATER:   
+                valStack.push_back((int)(lhs>rhs));
+                break;    
+            case Token::GE:       
+                valStack.push_back((int)(lhs>=rhs));
+                break;
+            case Token::LESS:      
+                valStack.push_back((int)(lhs<rhs));
+                break; 
+            case Token::LE:    
+                valStack.push_back((int)(lhs<=rhs));
+                break;
+            case Token::EQUAL:   
+                valStack.push_back((int)(lhs==rhs));
+                break;
+            case Token::ASSIGN:   
+                Assert(0, "assign have not been implenment.");
+                break;
+            default:
+                Assert(0, "error type in stackCalculate.");   
+            }
+        };
+
+        if (pFactor->isIdentifier()) 
+            valStack.push_back(pFactor->GetIdentifierName());
+        else 
+            valStack.push_back(pFactor->Eval());
+        opStack.push_back(MakeTokenPtr(Token::ASSIGN));
+        
         for (auto& i : factorList)
         {
-            switch(i.first->getType())
-            {
-            case Token::PLUS:
-                ret += i.second->Eval();
-                break;
-            case Token::SUB:
-                ret -= i.second->Eval();
-                break;
-            case Token::ASSIGN:
-                ret = i.second->Eval();
-            }
-
+            if (opTokenToInt(i.first) < opTokenToInt(opStack.back()))
+                stackCalculate();
+            opStack.push_back(i.first);
+            if (i.second->isIdentifier()) 
+                valStack.push_back(i.second->GetIdentifierName());
+            else 
+                valStack.push_back(i.second->Eval());
         }
+        
+        while (valStack.size() != 1)
+            stackCalculate();
 
+        // TODO
+        auto ret = valStack.back();
+        return std::holds_alternative<variant<int, double>>(ret) ? std::get<variant<int, double>>(ret) : Env[std::get<string>(ret)];
     }
     
     void ExprNode::ListHandler(const TokenPtr& pTokenRhs, const FactorPtr& pFactorRhs)
@@ -94,8 +223,10 @@ namespace Ast
         factorList.push_back(make_pair((TokenPtr)pTokenRhs, (FactorPtr)pFactorRhs));
     }
    
-
-    string BlockNode::Dump() const
+    /*************************************************************
+		BlockNode
+    *************************************************************/
+    const string BlockNode::Dump() const
     {
         stringstream ret;
         ret << "{" << (pStatement ? pStatement->Dump():"");
@@ -105,8 +236,22 @@ namespace Ast
         return ret.str();
     }
     
-    double BlockNode::Eval()
+    variant<int, double> BlockNode::Eval()
     {
+        if (pStatement && statementList.empty())
+            return pStatement->Eval();
+        if (!statementList.empty())
+        {
+            if (pStatement) pStatement->Eval();
+            
+            auto ret = variant<int, double>{};
+            for (auto& i : statementList)
+                if (i)
+                    ret = i->Eval();
+            return ret;
+        }
+        // pStatement, statementList all empty
+        return variant<int, double>{0};
     }
 
     void BlockNode::ListHandler(const StatementPtr& pStatementRhs)
@@ -114,18 +259,23 @@ namespace Ast
         statementList.push_back(pStatementRhs);
     }
     
-
-    string SimpleNode::Dump() const 
+    /*************************************************************
+		SimpleNode
+    *************************************************************/
+    const string SimpleNode::Dump() const 
     {
         return pExpr->Dump();
     }
     
-    double SimpleNode::Eval()
+    variant<int, double> SimpleNode::Eval()
     {
+        return pExpr->Eval();
     }
 
-
-    string StatementNode::Dump() const
+    /*************************************************************
+		StatementNode
+    *************************************************************/
+    const string StatementNode::Dump() const
     {
         stringstream ret;
         switch (type)
@@ -147,12 +297,44 @@ namespace Ast
         return ret.str();
     }
 
-    double StatementNode::Eval()
+    variant<int, double> StatementNode::Eval()
     {
+        switch (type)
+        {
+        case SIMPLE: 
+            return pSimple->Eval();
+        case WHILE:
+        {
+            auto ret = variant<int, double>{0};
+            while (GET(pExpr->Eval()))
+                ret = pBlock->Eval();
+            return ret;
+        }
+        case IF:
+        {
+            auto ret = variant<int, double>{0};
+            if (GET(pExpr->Eval()))
+                ret = pBlock->Eval();
+            return ret;
+        }
+        case IFELSE:
+        {
+            auto ret = variant<int, double>{0};
+            if (GET(pExpr->Eval()))
+                ret = pBlock->Eval();
+            else 
+                ret = pBlockOfElse->Eval();
+            return ret;
+        }
+        default:
+            Assert(0, "error type in eval statement.");   
+        }
     }
 
-
-    string ProgramNode::Dump() const
+    /*************************************************************
+		ProgramNode
+    *************************************************************/
+    const string ProgramNode::Dump() const
     {
         stringstream ret;
         for (auto& i : statementList)
@@ -160,8 +342,13 @@ namespace Ast
         return ret.str();
     }
 
-    double ProgramNode::Eval()
+    variant<int, double> ProgramNode::Eval()
     {
+        auto ret = variant<int, double>{0};
+        for (auto& i : statementList)
+            if (i)
+                ret = i->Eval();
+        return ret;
     }
 
     void ProgramNode::ListHandler(const StatementPtr& pStatementRhs)

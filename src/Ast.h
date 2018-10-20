@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <variant>
+#include "Error.h"
 #include "Token.h"
 #include "Helper.h"
 #include "Environment.h"
@@ -13,6 +15,7 @@ namespace Ast
 {
     using namespace Lexer;
     using namespace Environment;
+    using namespace Util;
 
     using std::stringstream;
     using std::make_pair;
@@ -20,14 +23,15 @@ namespace Ast
     using std::string;
     using std::vector;
     using std::pair;
-    
+    using std::variant;
+
     class AstNode //: public std::enable_shared_from_this<AstNode>
     {
     public:
         AstNode() {}
-        virtual         ~AstNode() {}
-        virtual string  Dump() const = 0;
-        virtual double  Eval() = 0;
+        virtual                         ~AstNode() {}
+        virtual const string            Dump() const = 0;
+        virtual variant<int, double>    Eval() = 0;
     };
 
     class PrimaryNode;
@@ -55,13 +59,14 @@ namespace Ast
         {
             Assert((!pToken && pExpr)||(pToken && !pExpr), "PrimaryNode must have one and only one non-nullptr member.");            
         }
-        virtual                 ~PrimaryNode() {}
-        
-        virtual string          Dump() const override;
-        virtual double          Eval() override;
+        virtual                         ~PrimaryNode() {}
+        virtual const string            Dump() const override;
+        virtual variant<int, double>    Eval() override;
+        bool                            isIdentifier() const;
+        const string&                   GetIdentifierName() const;
     private:
-        ExprPtr                 pExpr   = nullptr;
-        TokenPtr                pToken  = nullptr;
+        ExprPtr     pExpr               = nullptr;
+        TokenPtr    pToken              = nullptr;
 
     };
 
@@ -74,14 +79,14 @@ namespace Ast
             Assert((!pToken && pPrimary)||(pToken && pPrimary), "FactorNode must have non-nullptr members or have one non-nullptr pPrimary one nullptr pToken.");
             Assert(!pToken || (pToken->getType() == Token::SUB || pToken->getType() == Token::PLUS), "FactorNode pToken's type should be SUB or PLUS.");      
         }
-        virtual             ~FactorNode() {}
-        
-        virtual string      Dump() const override;
-        virtual double      Eval() override;
-        
+        virtual                             ~FactorNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;
+        bool                                isIdentifier() const;
+        const string&                       GetIdentifierName() const;
     private:
-        PrimaryPtr          pPrimary    = nullptr;
-        TokenPtr            pToken      = nullptr;
+        PrimaryPtr  pPrimary                = nullptr;
+        TokenPtr    pToken                  = nullptr;
     };
 
 
@@ -95,31 +100,29 @@ namespace Ast
         {
             Assert(pFactor, "ExprNode pFactor can not be nullptr.");
         }
-        virtual             ~ExprNode() {}
-        
-        virtual string      Dump() const override;
-        virtual double      Eval() override;
-        void                ListHandler(const TokenPtr&, const FactorPtr&);
+        virtual                             ~ExprNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;
+        void                                ListHandler(const TokenPtr&, const FactorPtr&);
     private:
-        FactorPtr           pFactor     = nullptr;
-        List                factorList;
+        FactorPtr   pFactor                 = nullptr;
+        List        factorList;
     };
 
 
     class BlockNode : public AstNode
     {
     public:
-        typedef vector<StatementPtr> List;
+        typedef vector<StatementPtr>        List;
 
         BlockNode(const StatementPtr& pStatementRhs): pStatement(pStatementRhs) {}
-        virtual                 ~BlockNode() {}
-        
-        virtual string          Dump() const override;
-        virtual double          Eval() override;        
-        void                    ListHandler(const StatementPtr&);
-    private:
-        StatementPtr            pStatement;
-        List                    statementList;
+        virtual                             ~BlockNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;        
+        void                                ListHandler(const StatementPtr&);
+    private:            
+        StatementPtr                        pStatement;
+        List                                statementList;
     };
 
 
@@ -130,13 +133,12 @@ namespace Ast
         {
             Assert(pExpr, "SimpleNode pExpr can not be nullptr.");
         }
-        virtual             ~SimpleNode() {}
-        
-        virtual string      Dump() const override;
-        virtual double      Eval() override;
+        virtual                             ~SimpleNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;
 
     private:
-        ExprPtr             pExpr   = nullptr;
+        ExprPtr pExpr                       = nullptr;
     };
 
 
@@ -170,33 +172,29 @@ namespace Ast
             }
 #endif
         } 
-        virtual                 ~StatementNode() {}
-        
-        virtual string          Dump() const override;
-        virtual double          Eval() override;
-
+        virtual                                 ~StatementNode() {}
+        virtual const string                    Dump() const override;
+        virtual variant<int, double>            Eval() override;
     private:
-
-        Type                    type            = UNKNOWN;
-        ExprPtr                 pExpr           = nullptr;
-        BlockPtr                pBlock          = nullptr;
-        BlockPtr                pBlockOfElse    = nullptr;        
-        SimplePtr               pSimple         = nullptr;
+        Type        type                        = UNKNOWN;
+        ExprPtr     pExpr                       = nullptr;
+        BlockPtr    pBlock                      = nullptr;
+        BlockPtr    pBlockOfElse                = nullptr;        
+        SimplePtr   pSimple                     = nullptr;
     };
 
 
     class ProgramNode : public AstNode
     {
     public:
-        typedef vector<StatementPtr> List;
+        typedef vector<StatementPtr>        List;
 
         ProgramNode() {}
-        virtual             ~ProgramNode() {}
-        
-        virtual string      Dump() const override;
-        virtual double      Eval() override;        
-        void                ListHandler(const StatementPtr&);
+        virtual                             ~ProgramNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;        
+        void                                ListHandler(const StatementPtr&);
     private:
-        List                statementList;
+        List                                statementList;
     };
 }

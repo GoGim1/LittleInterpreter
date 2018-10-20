@@ -2,7 +2,7 @@
 
 namespace Lexer
 {
-    list<Token> tokenList;      
+    list<Token>                             tokenList;      
     std::unordered_map<string, Token::Type> reservedTable;
 
 #ifdef DEBUG
@@ -13,19 +13,19 @@ namespace Lexer
     }
 #endif
 
-    Token NextToken() 
+    const Token NextToken() 
     {   
         Assert(!tokenList.empty(), "NextToken() error: TokenList is empty");
         if (tokenList.size() > 1)
         {
-            Token ret = tokenList.front();
+            const Token ret = tokenList.front();
             tokenList.pop_front();    
             return ret;
         }
         return tokenList.front();
     }
 
-    Token PeekToken() 
+    const Token& PeekToken() 
     {
         Assert(!tokenList.empty(), "PeekToken() error: TokenList is empty");
         return tokenList.front();
@@ -117,7 +117,7 @@ namespace Lexer
         HandleError();
     }
 
-    void RunLexerFromFile(string fileName)  
+    void RunLexerFromFile(const string& fileName)  
     { 
         fstream                         file(fileName, std::fstream::in);
         if (!file.is_open()) throw Error("File is not open correctly.");

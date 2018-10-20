@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <sstream>
+#include <sstream>  
 #include "Error.h"
 #include "Ast.h"
 #include "Lexer.h"
@@ -26,7 +26,8 @@ namespace Parse
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
         void            RunParser();
-        string          Dump();
+        const string    Dump() const;
+        void            Eval() const;
     private:
         ProgramPtr      program;
     };

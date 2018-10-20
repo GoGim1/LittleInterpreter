@@ -487,14 +487,14 @@ TEST(Parser, ErrorStep)
         auto p = parser.ParseProgram();
         ASSERT_EQ(DumpError(), R"TEST([Line 0, 11]: BlockNode error: BlockNode must start with "{".
 [Line 0, 11]: StatementNode error: parsing Block error when parsing WHILE Statement.
-[Line 0, 0]: Program error: parsing Statement list error.
+[Line 0, 0]: ProgramNode error: parsing Statement list error.
 )TEST");
     }   
     {
         RunLexer("while(30*2){}if(){})");
         Parser parser;
         auto p = parser.ParseProgram();
-        ASSERT_EQ(DumpError(), R"TEST([Line 0, 13]: Program error: Statement list should be separated by ";".
+        ASSERT_EQ(DumpError(), R"TEST([Line 0, 13]: ProgramNode error: Statement list should be separated by ";".
 )TEST");
     }   
 }
@@ -514,7 +514,7 @@ TEST(Parser, Error)
 [Line 0, 0]: ExprNode error: parsing the first Factor error.
 [Line 0, 0]: SimpleNode error: parsing Expr error.
 [Line 0, 0]: StatementNode error: parsing Simple error.
-[Line 0, 0]: Program error: parsing Statement list error.
+[Line 0, 0]: ProgramNode error: parsing Statement list error.
 )TEST");
         HandleEnd  
     }
@@ -528,7 +528,7 @@ TEST(Parser, Error)
 [Line 0, 0]: ExprNode error: parsing the first Factor error.
 [Line 0, 0]: SimpleNode error: parsing Expr error.
 [Line 0, 0]: StatementNode error: parsing Simple error.
-[Line 0, 0]: Program error: parsing Statement list error.
+[Line 0, 0]: ProgramNode error: parsing Statement list error.
 )TEST");
         HandleEnd  
     }
@@ -544,7 +544,7 @@ TEST(Parser, Error)
 [Line 0, 0]: ExprNode error: parsing the first Factor error.
 [Line 0, 0]: SimpleNode error: parsing Expr error.
 [Line 0, 0]: StatementNode error: parsing Simple error.
-[Line 0, 0]: Program error: parsing Statement list error.
+[Line 0, 0]: ProgramNode error: parsing Statement list error.
 )TEST");
         HandleEnd  
     }
@@ -561,7 +561,7 @@ TEST(Parser, Error)
 [Line 0, 0]: ExprNode error: parsing the first Factor error.
 [Line 0, 0]: SimpleNode error: parsing Expr error.
 [Line 0, 0]: StatementNode error: parsing Simple error.
-[Line 0, 0]: Program error: parsing Statement list error.
+[Line 0, 0]: ProgramNode error: parsing Statement list error.
 )TEST");
         HandleEnd  
     }
@@ -571,12 +571,19 @@ TEST(Parser, Error)
             RunLexer("while(30*2){}if(){})");
             parser.RunParser();  
         HandleCatch
-            ASSERT_EQ(DumpError(), R"TEST([Line 0, 13]: Program error: Statement list should be separated by ";".
+            ASSERT_EQ(DumpError(), R"TEST([Line 0, 13]: ProgramNode error: Statement list should be separated by ";".
 )TEST");
         HandleEnd  
     }
+}
 
-
+TEST(Parser, Eval)
+{
+    // {
+    //     RunLexer("3;");
+    //     Parser parser;
+    //     parser.RunParser();
+    // }
 }
 
 TEST(Parser, File)
@@ -589,4 +596,5 @@ TEST(Parser, File)
         
     }
 }
+
 

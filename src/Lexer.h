@@ -20,10 +20,10 @@ namespace Lexer
     using std::list;
     using std::string;
 
-    Token NextToken();
-    Token PeekToken();
+    const Token NextToken();
+    const Token& PeekToken();
     
     void RunLexer(string code);
-    void RunLexerFromFile(string fileName);
+    void RunLexerFromFile(const string& fileName);
 
 };

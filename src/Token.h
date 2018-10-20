@@ -33,7 +33,7 @@ namespace Lexer
             return *this;
         }
 
-        string Dump()
+        const string& Dump()
         {
             return value;
         }

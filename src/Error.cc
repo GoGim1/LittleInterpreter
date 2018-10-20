@@ -11,7 +11,7 @@ namespace Util
     }     
 #endif
 
-    string DumpError()
+    const string DumpError()
     {
         std::stringstream s;
         for (auto& i : errorList)
