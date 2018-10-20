@@ -57,43 +57,43 @@ TEST(Ast, Env)
         RunLexer("a = 1");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 1.0));
         Env.clear();
     }
     {
         RunLexer("a = 1; a");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 1.0));
         Env.clear();
     }
     {
         RunLexer("a = 1; a = a + 1; ");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.0));
         Env.clear();
     }  
     {
         RunLexer("a = 1; b = 1.2; a + b");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.2));
         Env.clear();
     }    
     {
         RunLexer("a = 1; b = 1.2; c = a + b");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.2));
         Env.clear();
     }
     {
         RunLexer(R"(
 even = 0; 
-odd = 0; 
+odd = 0;;
 i = 1; 
-if i < 10
+while i < 10
 {
     if i % 2 == 0
     {
@@ -105,15 +105,136 @@ if i < 10
     };
     i = i + 1;
 };
-even + odd;)");
+even + odd;
+)");
         Parser parser; 
         parser.RunParser();       
-        parser.Eval();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 9.0));
+        Env.clear();
+    }
+        {
+        RunLexer(R"(
+even = 0; 
+odd = 0;;
+i = 1; 
+while i < 10
+{
+    if i % 2 == 0
+    {
+        even = even + 1;
+    }
+    else 
+    {
+        odd = odd + 1;
+    };
+    i = i + 1;
+};
+even + odd;
+)");
+        Parser parser; 
+        parser.RunParser();       
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 9.0));
         Env.clear();
     }
 }
 
 TEST(Ast, RuntimeError)
 {
-    
+    {
+        RunLexer("a = b;");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: "b" undefined.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a + 1;");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: "a" undefined.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a + b;");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: "b" undefined.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a;b = a;");
+        Parser parser; 
+        parser.RunParser();
+        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 0.0));
+        Env.clear();
+    }
+    {
+        RunLexer("1 = 3");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 2]: Runtime error: can not assign to r-value.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a;1 = a");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: can not assign to r-value.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a;2 + a = a");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 8]: Runtime error: can not assign to r-value.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a;a = 2/a");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 7]: Runtime error: denominator of div operator can't be zero.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a = 1.2; a % 2");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 11]: Runtime error: parameters of mod operator can't be double.)");
+            Env.clear();
+        HandleEnd
+    }
+
 }
+

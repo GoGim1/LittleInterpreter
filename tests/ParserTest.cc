@@ -629,18 +629,14 @@ TEST(Parser, Eval)
         parser.RunParser();       
         ASSERT_TRUE(GET(parser.EvalValue()) == 0);
     }
-    // {
-    //     RunLexer("while 3+-id*2 {3+-id*2;;}");
-    //     Parser parser;
-    //     parser.RunParser();       
-    //     ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()),  ));
-    // } 
-    // {
-    //     RunLexer("3+-id;if -2{3+-id;3+-id;};if 3+-id{3+-id;3+-id;}else {3+-id;3+-id;};while 3+-id{3+-id;3+-id;}");
-    //     Parser parser;
-    //     parser.RunParser();  
-    //     ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()),  ));
-    // }     
+    {
+        RunLexer("i = 1;while i { i=i-1;3+i*2; ; }");
+        Parser parser;
+        parser.RunParser();   
+        auto val = GET(parser.EvalValue());    
+        ASSERT_EQ(val, 3);
+    } 
+
 }
 
 TEST(Parser, File)

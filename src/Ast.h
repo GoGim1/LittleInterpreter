@@ -11,6 +11,7 @@
 #include "Token.h"
 #include "Helper.h"
 #include "Environment.h"
+#include "tools/FloatCompare.h"
 
 namespace Ast
 {

@@ -22,6 +22,7 @@ namespace Ast
             switch (pToken->getType())
             {
             case Token::INTEGER:
+                return std::stoi(pToken->getValue());    
             case Token::FLOAT:
                 return std::stod(pToken->getValue());                        
             case Token::IDENTIFIER:
@@ -30,7 +31,7 @@ namespace Ast
                 if (value != Env.end())
                     return value->second;
                 else 
-                    throw Error("Runtime error: "+ pToken->getValue() +" is undefined.", pToken->getPosX(), pToken->getPosY());
+                    throw Error("Runtime error: \""+ pToken->getValue() +"\" is undefined.", pToken->getPosX(), pToken->getPosY());
             }
             default:
                 Assert(0, "Eval Primary error");
@@ -127,7 +128,6 @@ namespace Ast
     // TODO 1.未定义标识符 2.定义标识符 3.不能赋值给右值 4.赋值给标识符
     variant<int, double> ExprNode::Eval()
     {
-        Print(Dump());        
         using NumValue          = variant<int, double>;
         using IdentifierValue   = tuple<string, int, int>;  // identifier's value, posX and posY
         using valStackItem      = variant<NumValue, IdentifierValue>;
@@ -164,6 +164,8 @@ namespace Ast
 
         auto stackCalculate = [&]()
         {
+            bool isLhsInt, isRhsInt;
+            double lhs, rhs;
             /*****************************************************
              * deal with the most top Item
              *****************************************************/
@@ -174,7 +176,7 @@ namespace Ast
             {
                 auto _IdentifierValue = get<IdentifierValue>(item);
                 if (Env.find(get<0>(_IdentifierValue)) == Env.end())   
-                    throw Error("Runtime error: " + get<0>(_IdentifierValue) + " undefined.", 
+                    throw Error("Runtime error: \"" + get<0>(_IdentifierValue) + "\" undefined.", 
                         get<1>(_IdentifierValue), get<2>(_IdentifierValue));
                 else 
                     rhsNumValue = Env[get<0>(_IdentifierValue)];
@@ -182,9 +184,8 @@ namespace Ast
             else // rhsItemType is NumValue 
                 rhsNumValue = get<NumValue>(item);
 
-            bool isInt = std::holds_alternative<int>(rhsNumValue);
-            if (isInt)
-            auto rhs = GET(rhsNumValue);  // get the double or int value
+            isRhsInt = std::holds_alternative<int>(rhsNumValue);
+            rhs = GET(rhsNumValue);
             valStack.pop_back();
 
             /***********************************************************
@@ -208,7 +209,7 @@ namespace Ast
                     if (isAssign)
                         Env[get<0>(_IdentifierValue)] = NumValue{0};
                     else 
-                        throw Error("Runtime error: " + get<0>(_IdentifierValue) + " undefined.", 
+                        throw Error("Runtime error: \"" + get<0>(_IdentifierValue) + "\" undefined.", 
                             get<1>(_IdentifierValue), get<2>(_IdentifierValue));
                 } 
                 else 
@@ -217,53 +218,74 @@ namespace Ast
             else // lhsItemType is NumValue 
             {
                 if (isAssign)
-                    throw Error("Runtime error: can not assign to r-value.", op->getPosX(), op->getPosX());
+                    throw Error("Runtime error: can not assign to r-value.", op->getPosX(), op->getPosY());
                 else
                     lhsNumValue = get<NumValue>(item);
             } 
-            auto lhs = GET(lhsNumValue);  // get the double or int value
+            isLhsInt = std::holds_alternative<int>(lhsNumValue);
+            lhs = GET(lhsNumValue);
             valStack.pop_back();
-
-
+            
             switch (op->getType())
             {
             case Token::DIV:    
                 if (rhs == 0) 
                     throw Error("Runtime error: denominator of div operator can't be zero.", op->getPosX(), op->getPosY());
-                valStack.push_back(lhs/rhs);
+                if (isLhsInt && isRhsInt)
+                    valStack.push_back((int)lhs/(int)rhs);
+                else
+                    valStack.push_back(lhs/rhs);
                 break;
-            case Token::MUL:      
-                valStack.push_back(lhs*rhs);
+            case Token::MUL:  
+                if (isLhsInt && isRhsInt)
+                    valStack.push_back((int)lhs*(int)rhs);
+                else    
+                    valStack.push_back(lhs*rhs);
                 break; 
             case Token::MOD:    
-                if (typeid(rhs) == typeid(double) || typeid(lhs)== typeid(double))
+                if (isLhsInt && isRhsInt)
+                    valStack.push_back((int)lhs%(int)rhs);
+                else 
                     throw Error("Runtime error: parameters of mod operator can't be double.", op->getPosX(), op->getPosY());
-                valStack.push_back((int)lhs%(int)rhs);
                 break;
-            case Token::PLUS:     
-                valStack.push_back(lhs+rhs);
+            case Token::PLUS:
+                if (isLhsInt && isRhsInt)
+                    valStack.push_back((int)lhs+(int)rhs);
+                else         
+                    valStack.push_back(lhs+rhs);
                 break;  
-            case Token::SUB:     
-                valStack.push_back(lhs-rhs);
+            case Token::SUB:  
+                if (isLhsInt && isRhsInt)
+                    valStack.push_back((int)lhs-(int)rhs);
+                else       
+                    valStack.push_back(lhs-rhs);
                 break;
             case Token::GREATER:   
                 valStack.push_back((int)(lhs>rhs));
                 break;    
             case Token::GE:       
-                valStack.push_back((int)(lhs>=rhs));
+                valStack.push_back((int)!(lhs<rhs));
                 break;
             case Token::LESS:      
                 valStack.push_back((int)(lhs<rhs));
                 break; 
             case Token::LE:    
-                valStack.push_back((int)(lhs<=rhs));
+                valStack.push_back((int)!(lhs>rhs));
                 break;
             case Token::EQUAL:   
-                valStack.push_back((int)(lhs==rhs));
+                valStack.push_back((int)IsAlmostEqual(lhs, rhs));
                 break;
             case Token::ASSIGN:   
-                Env[get<0>(get<IdentifierValue>(item))] = rhs;
-                valStack.push_back(rhs);
+                if (isRhsInt)
+                {
+                    Env[get<0>(get<IdentifierValue>(item))] = (int)rhs;
+                    valStack.push_back((int)rhs);
+                }
+                else 
+                {
+                    Env[get<0>(get<IdentifierValue>(item))] = rhs;
+                    valStack.push_back(rhs); 
+                }
                 break;
             default:
                 Assert(0, "error type in stackCalculate.");   
@@ -377,6 +399,7 @@ namespace Ast
 
     variant<int, double> StatementNode::Eval()
     {
+        
         switch (type)
         {
         case SIMPLE: 
@@ -398,7 +421,6 @@ namespace Ast
         }
         case IFELSE:
         {
-            Print("IFELSE");
             auto ret = variant<int, double>{0};
             if (GET(pExpr->Eval()))
             {

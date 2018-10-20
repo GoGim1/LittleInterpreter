@@ -13,6 +13,8 @@
 // VARIANT run two times.
 // #define GET(VARIANT) 
 // (std::holds_alternative<int>(VARIANT) ? std::get<int>(VARIANT) : std::get<double>(VARIANT))
+
+// WARNING: it always return double.
 #define GET(VARIANT)                                                                    \
 ({                                                                                      \
     auto _tmp = (VARIANT);                                                              \
