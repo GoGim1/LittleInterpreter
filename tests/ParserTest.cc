@@ -645,7 +645,7 @@ TEST(Parser, File)
         RunLexerFromFile("../tests/testcases/ParserCase.txt");
         Parser parser;
         parser.RunParser();
-     //   cout << parser.Dump();
+        parser.Eval();
         
     }
 }

@@ -125,7 +125,6 @@ namespace Ast
         return ret.str();  
     }
 
-    // TODO 1.未定义标识符 2.定义标识符 3.不能赋值给右值 4.赋值给标识符
     variant<int, double> ExprNode::Eval()
     {
         using NumValue          = variant<int, double>;
@@ -244,7 +243,10 @@ namespace Ast
                 break; 
             case Token::MOD:    
                 if (isLhsInt && isRhsInt)
-                    valStack.push_back((int)lhs%(int)rhs);
+                    if (rhs != 0)
+                        valStack.push_back((int)lhs%(int)rhs);
+                    else 
+                        throw Error("Runtime error: the rhs of mod operation can't be zero.", op->getPosX(), op->getPosY());
                 else 
                     throw Error("Runtime error: parameters of mod operator can't be double.", op->getPosX(), op->getPosY());
                 break;
