@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 project(LittleInterpreter)
 
-SET(CMAKE_BUILD_TYPE "Debug")
+SET(CMAKE_BUILD_TYPE "Release")
 
 set(CXX_FLAGS
         -Wall
@@ -13,7 +13,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g2 -ggdb -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 include_directories(src)
+add_subdirectory(src)
 
-#add_subdirectory(src)
-add_subdirectory(tests)
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+        add_subdirectory(tests)
+endif()
 
