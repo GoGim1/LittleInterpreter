@@ -16,7 +16,7 @@ namespace Util
         std::stringstream s;
         for (auto& i : errorList)
             s << i.what() << std::endl;
-        errorList.clear();
+        CleanError();
         return s.str();
     }
     
@@ -34,5 +34,10 @@ namespace Util
     void AddError(const Error& e)
     {
         errorList.push_back(e);
+    }
+
+    void CleanError()
+    {
+        errorList.clear();
     }
 }

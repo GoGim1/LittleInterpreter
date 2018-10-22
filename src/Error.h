@@ -43,8 +43,9 @@ namespace Util
     void     PrintError();   
 #endif 
 
-    const string   DumpError(); 
-    void     HandleError();
-    void     AddError(const Error&);
+    void            CleanError();
+    const string    DumpError(); 
+    void            HandleError();
+    void            AddError(const Error&);
     
 };

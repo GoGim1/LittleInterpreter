@@ -98,3 +98,23 @@ TEST(Lexer, Error)
 )TEST");
     HandleEnd
 }
+
+TEST(Lexer, Func) 
+{
+    RunLexer(R"(defuse def, )");
+    ASSERT_EQ(PeekToken().getPosX(), 0);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "defuse");
+    ASSERT_EQ(NextToken().getType(), Token::IDENTIFIER);
+
+    ASSERT_EQ(PeekToken().getPosX(), 7);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), "def");
+    ASSERT_EQ(NextToken().getType(), Token::DEF);
+
+    ASSERT_EQ(PeekToken().getPosX(), 10);
+    ASSERT_EQ(PeekToken().getPosY(), 0);
+    ASSERT_EQ(PeekToken().getValue(), ",");
+    ASSERT_EQ(NextToken().getType(), Token::COMMA);
+    
+}

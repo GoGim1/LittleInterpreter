@@ -66,6 +66,7 @@ namespace Lexer
         reservedTable["else"] = Token::ELSE;
         reservedTable["while"] = Token::WHILE;
         reservedTable["var"] = Token::VAR;
+        reservedTable["def"] = Token::DEF;
         reservedTable[">="] = Token::GE;
         reservedTable["<="] = Token::LE;
         reservedTable["=="] = Token::EQUAL;
@@ -82,10 +83,12 @@ namespace Lexer
         reservedTable["}"] = Token::RBRACE;
         reservedTable["("] = Token::LBRACKET;
         reservedTable[")"] = Token::RBRACKET;
+        reservedTable[","] = Token::COMMA;
     }
     
     void RunLexer(string code)  
     { 
+        CleanError();
         tokenList.clear();
         
         std::regex          pattern(R"(([0-9]+\.[0-9]+)|([0-9]+)|([A-Z_a-z][A-Z_a-z0-9]*)|==|<=|>=|\S)");
@@ -120,7 +123,8 @@ namespace Lexer
     void RunLexerFromFile(const string& fileName)  
     { 
         fstream                         file(fileName, std::fstream::in);
-        if (!file.is_open()) throw Error("File is not open correctly.");
+        if (!file.is_open()) 
+            throw Error("File is not open correctly.");
 
         std::istreambuf_iterator<char>  beg(file), end; 
         std::string                     code(beg, end);
