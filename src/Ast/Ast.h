@@ -74,7 +74,8 @@ namespace Ast
     class PrimaryNode : public AstNode
     {
     public:
-        PrimaryNode(const ExprPtr& pExprRhs, const TokenPtr& pTokenRhs) : pExpr(pExprRhs), pToken(pTokenRhs) 
+        PrimaryNode(const ExprPtr& pExprRhs, const TokenPtr& pTokenRhs, const PostfixPtr& pPostfixRhs = nullptr):
+                     pExpr(pExprRhs), pToken(pTokenRhs), pPostfix(pPostfixRhs)
         {
             Assert((!pToken && pExpr)||(pToken && !pExpr), "PrimaryNode must have one and only one non-nullptr member.");            
         }
@@ -88,7 +89,7 @@ namespace Ast
     private:
         ExprPtr     pExpr               = nullptr;
         TokenPtr    pToken              = nullptr;
-
+        PostfixPtr  pPostfix            = nullptr;
     };
 
 
@@ -152,7 +153,8 @@ namespace Ast
     class SimpleNode : public AstNode
     {
     public:
-        SimpleNode(const ExprPtr& pExprRhs): pExpr(pExprRhs) 
+        SimpleNode(const ExprPtr& pExprRhs, const ArgsPtr& pArgsRhs = nullptr):
+                    pExpr(pExprRhs), pArgs(pArgsRhs)
         {
             Assert(pExpr, "SimpleNode pExpr can not be nullptr.");
         }
@@ -162,6 +164,7 @@ namespace Ast
 
     private:
         ExprPtr pExpr                       = nullptr;
+        ArgsPtr pArgs                       = nullptr;
     };
 
 
@@ -211,14 +214,17 @@ namespace Ast
     {
     public:
         typedef vector<StatementPtr>        List;
+        typedef vector<DefPtr>              DefList;
 
         ProgramNode() {}
         virtual                             ~ProgramNode() {}
         virtual const string                Dump() const override;
         virtual variant<int, double>        Eval() override;        
         void                                ListHandler(const StatementPtr&);
+        void                                DefListHandler(const DefPtr&);        
     private:
-        List                                statementList;
+        List                                statementList{};
+        DefList                             defList{};
     };
 
 

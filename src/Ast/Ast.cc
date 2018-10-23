@@ -12,6 +12,8 @@ namespace Ast
            ret << "(" << pExpr->Dump() << ")";
         else 
             ret << pToken->Dump();
+        if (pPostfix)
+            ret << pPostfix->Dump();
         return ret.str();
     }
 
@@ -366,6 +368,8 @@ namespace Ast
     *************************************************************/
     const string SimpleNode::Dump() const 
     {
+        if (pArgs)
+            return pExpr->Dump() + " " + pArgs->Dump();
         return pExpr->Dump();
     }
     
@@ -443,6 +447,8 @@ namespace Ast
     const string ProgramNode::Dump() const
     {
         stringstream ret;
+        for (auto& i : defList)
+            ret << (i ? i->Dump() : "") << endl;
         for (auto& i : statementList)
             ret << (i ? i->Dump() : "") << ";";
         return ret.str();
@@ -462,4 +468,8 @@ namespace Ast
         statementList.push_back(pStatementRhs);
     }
     
+    void ProgramNode::DefListHandler(const DefPtr& pDefRhs)
+    {
+        defList.push_back(pDefRhs);
+    }
 }
