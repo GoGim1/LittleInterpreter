@@ -47,6 +47,13 @@ namespace Ast
     class StatementNode;
     class ProgramNode;
 
+    class ParamNode;
+    class ParamsNode;
+    class ParamListNode;
+    class DefNode;
+    class ArgsNode;
+    class PostfixNode;
+
 
     using TokenPtr      = shared_ptr<Token>;
     using PrimaryPtr    = shared_ptr<PrimaryNode>;
@@ -56,6 +63,13 @@ namespace Ast
     using SimplePtr     = shared_ptr<SimpleNode>;
     using StatementPtr  = shared_ptr<StatementNode>;
     using ProgramPtr    = shared_ptr<ProgramNode>;
+
+    using ParamPtr      = shared_ptr<ParamNode>;
+    using ParamsPtr     = shared_ptr<ParamsNode>;
+    using ParamListPtr  = shared_ptr<ParamListNode>;
+    using DefPtr        = shared_ptr<DefNode>;
+    using ArgsPtr       = shared_ptr<ArgsNode>;
+    using PostfixPtr    = shared_ptr<PostfixNode>;
 
     class PrimaryNode : public AstNode
     {
@@ -206,4 +220,89 @@ namespace Ast
     private:
         List                                statementList;
     };
+
+
+
+    /***************************************************************************************
+     *  Function
+     * ************************************************************************************/
+    class ParamNode : public AstNode
+    {
+    public:
+        ParamNode(const TokenPtr& pTokenRhs);
+        virtual ~ParamNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;        
+
+    private:
+        TokenPtr                            pToken = nullptr;
+    };
+
+    class ParamsNode : public AstNode
+    {
+    public:
+        using List = vector<ParamPtr>;
+    
+        ParamsNode(const ParamPtr&); 
+        virtual ~ParamsNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;      
+        void                                ListHandler(const ParamPtr&);
+    private: 
+        ParamPtr                            pParam = nullptr;
+        List                                paramList{};
+    };
+
+    class ParamListNode : public AstNode
+    {
+    public:
+        ParamListNode(const ParamsPtr& = nullptr);
+        virtual ~ParamListNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;        
+    
+    private:
+        ParamsPtr                           pParams = nullptr;
+    };
+
+    class DefNode : public AstNode
+    {
+    public:
+        DefNode(const TokenPtr&, const ParamListPtr&, const BlockPtr&); 
+        virtual ~DefNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;   
+
+    private:    
+        TokenPtr                            pToken      = nullptr;
+        ParamListPtr                        pParamList  = nullptr;
+        BlockPtr                            pBlock      = nullptr;     
+    };
+
+    class ArgsNode : public AstNode
+    {
+    public:
+        using List = vector<ExprPtr>;
+
+        ArgsNode(const ExprPtr&);
+        virtual ~ArgsNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;  
+        void                                ListHandler(const ExprPtr&);
+    private:
+        ExprPtr                             pExpr = nullptr;
+        List                                exprList{};  
+    };
+
+    class PostfixNode : public AstNode
+    {
+    public:
+        PostfixNode(const ArgsPtr& = nullptr);
+        virtual ~PostfixNode() {}
+        virtual const string                Dump() const override;
+        virtual variant<int, double>        Eval() override;    
+    private: 
+        ArgsPtr                             pArgs = nullptr;   
+    };
+
 }

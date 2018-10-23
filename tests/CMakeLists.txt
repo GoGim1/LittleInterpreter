@@ -36,3 +36,11 @@ add_executable(EnvironmentTest
                 EnvironmentTest.cc 
                 )
 target_link_libraries(EnvironmentTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(AstFuncTest 
+                AstFuncTest.cc 
+                ../src/Error.cc
+                ../src/Environment.cc
+                ../src/Ast/Ast.cc
+                ../src/Ast/AstFunc.cc)
+target_link_libraries(AstFuncTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})

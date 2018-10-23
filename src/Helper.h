@@ -10,6 +10,13 @@
 #define MakePrimaryPtr      std::make_shared<PrimaryNode>
 #define MakeTokenPtr        std::make_shared<Token>
 
+#define MakeParamPtr        std::make_shared<ParamNode>
+#define MakeParamsPtr       std::make_shared<ParamsNode>
+#define MakeParamListPtr    std::make_shared<ParamListNode>
+#define MakeDefPtr          std::make_shared<DefNode>
+#define MakeArgsPtr         std::make_shared<ArgsNode>
+#define MakePostfixPtr      std::make_shared<PostfixNode>
+
 // VARIANT run two times.
 // #define GET(VARIANT) 
 // (std::holds_alternative<int>(VARIANT) ? std::get<int>(VARIANT) : std::get<double>(VARIANT))
