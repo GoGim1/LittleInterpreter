@@ -112,30 +112,6 @@ even + odd;
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 9.0));
         Env.clear();
     }
-        {
-        RunLexer(R"(
-even = 0; 
-odd = 0;;
-i = 1; 
-while i < 10
-{
-    if i % 2 == 0
-    {
-        even = even + 1;
-    }
-    else 
-    {
-        odd = odd + 1;
-    };
-    i = i + 1;
-};
-even + odd;
-)");
-        Parser parser; 
-        parser.RunParser();       
-        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 9.0));
-        Env.clear();
-    }
 }
 
 
@@ -155,23 +131,12 @@ TEST(AstFunc, EvalFuncStep)
         ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 7.8);
     }
     {
-        RunLexer(R"TEST(def func(lhs)
-                        {
-                            if(lhs == 0)
-                            {
-                                0;
-                            }
-                            else
-                            {
-                                1 + func(lhs-1);
-                            }
-                        };
-                        func(1);
+        RunLexer(R"TEST(def func(lhs){if(lhs == 0){0;}else{1 + func(lhs-1);}};
+func(1);
 )TEST");
         Parser parser; 
         parser.RunParser();   
-        Print(parser.Dump());
-        parser.Eval();
+        ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 1);
     }
     // Simple
 
@@ -276,3 +241,30 @@ TEST(Ast, RuntimeError)
     }
 }
 
+TEST(Ast, FuncRuntimeError)
+{
+    {
+        RunLexer("def fun(){};fun(1)");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 12]: Runtime error: the number of args does not match the number of params.)");
+            Env.clear();
+            DefTableClean();
+        HandleEnd
+    }
+    {
+        RunLexer("fun(1)");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            //ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: undefined function "fun".)");
+            Env.clear();
+            DefTableClean();
+        HandleEnd
+    }
+}

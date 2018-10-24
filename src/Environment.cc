@@ -14,11 +14,16 @@ namespace Environment
         defTable[index] = pDefRhs;
     }
     
-    variant<int, double> EvalDef(const string& funName, const vector<variant<int, double>>& args)
+    variant<int, double> EvalDef(const string& funName, const vector<variant<int, double>>& args, int posX, int posY)
     {
         if (defTable.find(funName) == defTable.end())
-            assert(0);
+            throw Error("Runtime error: undefined function \"" + funName + "\".", posX, posY);
         auto pDef = defTable[funName];
-        return pDef->Eval(args);
+        return pDef->Eval(args, posX, posY);
+    }
+
+    void DefTableClean()
+    {
+        defTable.clear();
     }
 } // Environment

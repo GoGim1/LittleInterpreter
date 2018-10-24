@@ -277,7 +277,7 @@ namespace Ast
         virtual ~DefNode() {}
         const string                Dump() const ;
         void                        Definite();
-        variant<int, double>        Eval(const vector<variant<int, double>>&) ;  
+        variant<int, double>        Eval(const vector<variant<int, double>>&, int, int) ;  
         const string&               GetFunctionName() const; 
 
     private:    

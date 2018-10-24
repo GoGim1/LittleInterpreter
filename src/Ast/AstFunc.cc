@@ -95,11 +95,11 @@ namespace Ast
         DefiniteFunc(shared_from_this());
     }
 
-    variant<int, double> DefNode::Eval(const vector<variant<int, double>>& args) 
+    variant<int, double> DefNode::Eval(const vector<variant<int, double>>& args, int posX, int posY) 
     {
         const vector<string>& paramList = pParamList->GetParams();
         if (args.size() != paramList.size())    
-            assert(0);
+            throw Error("Runtime error: the number of args does not match the number of params.", posX, posY);
         
         for (size_t i = 0; i < args.size(); i++)
         {

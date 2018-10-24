@@ -23,7 +23,7 @@ namespace Ast
         {
             if (pToken)
             {
-                auto ret = EvalDef(pToken->getValue(), pPostfix->GetArgs());
+                auto ret = EvalDef(pToken->getValue(), pPostfix->GetArgs(), pToken->getPosX(), pToken->getPosY());
                 return ret;
             }    
             else 
@@ -386,7 +386,11 @@ namespace Ast
     
     variant<int, double> SimpleNode::Eval()
     {
-        return pExpr->Eval();
+        if (!pArgs)
+            return pExpr->Eval();
+        // else 
+        //     auto ret = EvalDef(pToken->getValue(), pPostfix->GetArgs(), pToken->getPosX(), pToken->getPosY());
+        //     return ret;
     }
 
     /*************************************************************
