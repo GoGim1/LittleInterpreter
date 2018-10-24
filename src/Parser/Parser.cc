@@ -40,9 +40,13 @@ namespace Parse
 
         if (PeekToken().getType() == Token::LBRACKET)
         {
+            auto t = PeekToken();
             pPostfix = ParsePostfix();
             if (!pPostfix)
-                assert(0);
+            {
+                AddError(Error("PrimaryNode error: parsing postfix fail.", t.getPosX(), t.getPosY()));
+                return nullptr;
+            }
         }
 
         PrimaryPtr ret = MakePrimaryPtr(pExpr, pToken, pPostfix);
@@ -299,9 +303,13 @@ namespace Parse
         if (peekTokenType == Token::SUB || peekTokenType == Token::PLUS || peekTokenType == Token::IDENTIFIER || 
                 peekTokenType == Token::FLOAT || peekTokenType == Token::INTEGER || peekTokenType == Token::LBRACKET)
         {
+            auto t = PeekToken();
             pArgs = ParseArgs();
             if (!pArgs)
-                assert(0);
+            {
+                AddError(Error("SimpleNode error: parsing Args error.", t.getPosX(), t.getPosY()));
+                return nullptr;
+            }
         }
         return MakeSimplePtr(pExpr, pArgs);
     }
@@ -390,12 +398,13 @@ namespace Parse
                 ret->ListHandler(nullptr);
             else
             {
-                if (PeekToken().getType() == Token::DEF)
+                if (peek.getType() == Token::DEF)
                 {
                     auto pParseDef = ParseDef();
                     if (!pParseDef)
                     {
-                       assert(0);
+                        AddError(Error("ProgramNode error: parsing Def error.", peek.getPosX(), peek.getPosY()));
+                        return nullptr;
                     }
                     ret->DefListHandler(pParseDef);
                 }
