@@ -7,6 +7,7 @@
 #include <utility>
 #include <variant>
 #include <tuple>
+#include <initializer_list>
 #include "Error.h"
 #include "Token.h"
 #include "Helper.h"
@@ -29,7 +30,8 @@ namespace Ast
     using std::tuple;
     using std::make_tuple;
     using std::get;
-    
+    using std::initializer_list;
+
     class AstNode //: public std::enable_shared_from_this<AstNode>
     {
     public:
@@ -232,52 +234,51 @@ namespace Ast
     /***************************************************************************************
      *  Function
      * ************************************************************************************/
-    class ParamNode : public AstNode
+    class ParamNode 
     {
     public:
         ParamNode(const TokenPtr& pTokenRhs);
         virtual ~ParamNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;        
-
+        const string                        Dump() const ;
     private:
         TokenPtr                            pToken = nullptr;
     };
 
-    class ParamsNode : public AstNode
+    class ParamsNode 
     {
     public:
         using List = vector<ParamPtr>;
     
         ParamsNode(const ParamPtr&); 
         virtual ~ParamsNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;      
+        const string                        Dump() const ;
         void                                ListHandler(const ParamPtr&);
+        const vector<string>                GetParams() const;
     private: 
         ParamPtr                            pParam = nullptr;
         List                                paramList{};
     };
 
-    class ParamListNode : public AstNode
+    class ParamListNode 
     {
     public:
         ParamListNode(const ParamsPtr& = nullptr);
         virtual ~ParamListNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;        
-    
+        const string                        Dump() const ;
+        const vector<string>                GetParams() const;
     private:
         ParamsPtr                           pParams = nullptr;
     };
 
-    class DefNode : public AstNode
+    class DefNode : public std::enable_shared_from_this<DefNode>
     {
     public:
         DefNode(const TokenPtr&, const ParamListPtr&, const BlockPtr&); 
         virtual ~DefNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;   
+        const string                Dump() const ;
+        void                        Definite();
+        variant<int, double>        Eval(const vector<variant<int, double>>&) ;  
+        const string&               GetFunctionName() const; 
 
     private:    
         TokenPtr                            pToken      = nullptr;
@@ -285,30 +286,31 @@ namespace Ast
         BlockPtr                            pBlock      = nullptr;     
     };
 
-    class ArgsNode : public AstNode
+    class ArgsNode 
     {
     public:
         using List = vector<ExprPtr>;
 
         ArgsNode(const ExprPtr&);
         virtual ~ArgsNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;  
-        void                                ListHandler(const ExprPtr&);
+        const string                                    Dump() const ;
+        void                                            ListHandler(const ExprPtr&);
+        const vector<variant<int, double>>              GetArgs() ;
+    
     private:
-        ExprPtr                             pExpr = nullptr;
-        List                                exprList{};  
+        ExprPtr                                         pExpr = nullptr;
+        List                                            exprList{};  
     };
 
-    class PostfixNode : public AstNode
+    class PostfixNode 
     {
     public:
         PostfixNode(const ArgsPtr& = nullptr);
         virtual ~PostfixNode() {}
-        virtual const string                Dump() const override;
-        virtual variant<int, double>        Eval() override;    
+        const string                                    Dump() const ;
+        const vector<variant<int, double>>              GetArgs() const;
     private: 
-        ArgsPtr                             pArgs = nullptr;   
+        ArgsPtr                                         pArgs = nullptr;   
     };
 
 }

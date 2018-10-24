@@ -138,6 +138,45 @@ even + odd;
     }
 }
 
+
+TEST(AstFunc, EvalFuncStep)
+{
+    // Primary
+    {
+        RunLexer(R"TEST(def func(){3};func())TEST");
+        Parser parser; 
+        parser.RunParser();   
+        ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 3);
+    }   
+    {
+        RunLexer(R"TEST(def func(lhs, rhs){lhs+rhs};func(3.2,4.6))TEST");
+        Parser parser; 
+        parser.RunParser();   
+        ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 7.8);
+    }
+    {
+        RunLexer(R"TEST(def func(lhs)
+                        {
+                            if(lhs == 0)
+                            {
+                                0;
+                            }
+                            else
+                            {
+                                1 + func(lhs-1);
+                            }
+                        };
+                        func(1);
+)TEST");
+        Parser parser; 
+        parser.RunParser();   
+        Print(parser.Dump());
+        parser.Eval();
+    }
+    // Simple
+
+}
+
 TEST(Ast, RuntimeError)
 {
     {

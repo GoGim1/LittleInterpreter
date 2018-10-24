@@ -130,6 +130,18 @@ def fun(){}
     }     
 }
 
+TEST(Parser, Build)
+{
+    {
+        RunLexer("3+-id*2; ;3+-id*2;def fun(i, j){}");
+        Parser parser;
+        parser.RunParser();       
+        ASSERT_EQ(NextToken().getType(), Token::_EOF);
+        ASSERT_EQ(parser.Dump(), R"TEST(def fun(i, j){}
+3+-id*2;;3+-id*2;)TEST");
+    }
+}
+
 TEST(Parser, ErrorStep)
 {
     // Param

@@ -1,5 +1,12 @@
 #include "Ast.h"
 
+namespace Environment
+{
+    using namespace Ast;
+    
+    extern void DefiniteFunc(const DefPtr&);
+}
+
 namespace Ast
 {
     /*************************************************************
@@ -15,11 +22,6 @@ namespace Ast
     {
         return pToken->Dump();
     }
-
-    variant<int, double> ParamNode::Eval()
-    {
-
-    }  
 
     /*************************************************************
         ParamsNode
@@ -38,13 +40,22 @@ namespace Ast
         return ret.str();
     }
 
-    variant<int, double> ParamsNode::Eval() {}
-
     void ParamsNode::ListHandler(const ParamPtr& pParamRhs)
     {
         paramList.push_back(pParamRhs);
     }
     
+    const vector<string> ParamsNode::GetParams() const
+    {
+        vector<string> ret{};
+
+        ret.push_back(pParam->Dump());
+
+        for (auto& i : paramList)
+            ret.push_back(i->Dump());
+
+        return ret;
+    }
     /*************************************************************
         ParamListNode
     *************************************************************/
@@ -58,8 +69,13 @@ namespace Ast
             return "(" + pParams->Dump() + ")";
     }
 
-    variant<int, double> ParamListNode::Eval() 
-    {}
+    const vector<string> ParamListNode::GetParams() const
+    {
+        if (pParams)
+            return pParams->GetParams();
+        else 
+            return vector<string>{};
+    }
     /*************************************************************
         DefNode
     *************************************************************/
@@ -74,8 +90,33 @@ namespace Ast
     {
         return "def " + pToken->Dump() + pParamList->Dump() + pBlock->Dump();
     }
+    void DefNode::Definite()
+    {
+        DefiniteFunc(shared_from_this());
+    }
 
-    variant<int, double> DefNode::Eval() {}
+    variant<int, double> DefNode::Eval(const vector<variant<int, double>>& args) 
+    {
+        const vector<string>& paramList = pParamList->GetParams();
+        if (args.size() != paramList.size())    
+            assert(0);
+        
+        for (size_t i = 0; i < args.size(); i++)
+        {
+            bool isInt = std::holds_alternative<int>(args[i]);
+            if (isInt)
+                Env[paramList[i]] = get<int>(args[i]); 
+            else 
+                Env[paramList[i]] = get<double>(args[i]); 
+        }
+
+        return pBlock->Eval();
+    }
+
+    const string& DefNode::GetFunctionName() const
+    {
+        return pToken->getValue();
+    }
 
     /*************************************************************
         ArgsNode
@@ -94,14 +135,23 @@ namespace Ast
         return ret.str();
     }
     
-    variant<int, double> ArgsNode::Eval() 
-    {}
-
     void ArgsNode::ListHandler(const ExprPtr& pExprRhs)
     {
         exprList.push_back(pExprRhs);
     }
     
+    const vector<variant<int, double>> ArgsNode::GetArgs() 
+    {
+        vector<variant<int, double>> ret{};
+
+        ret.push_back(pExpr->Eval());
+
+        for (auto& i : exprList)
+            ret.push_back(i->Eval());
+
+        return ret;
+    }
+
     /*************************************************************
         PostfixNode
     *************************************************************/
@@ -115,6 +165,11 @@ namespace Ast
             return "(" + pArgs->Dump() + ")";
     }
 
-    variant<int, double> PostfixNode::Eval() 
-    {}
+    const vector<variant<int, double>> PostfixNode::GetArgs() const
+    {
+        if (pArgs)
+            return pArgs->GetArgs();
+        else
+            return vector<variant<int, double>>{};
+    }
 }

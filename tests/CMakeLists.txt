@@ -12,6 +12,7 @@ target_link_libraries(LexerTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
 add_executable(AstTest 
                 AstTest.cc 
                 ../src/Ast/Ast.cc
+                ../src/Ast/AstFunc.cc
                 ../src/Environment.cc
                 ../src/Error.cc)
 target_link_libraries(AstTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})

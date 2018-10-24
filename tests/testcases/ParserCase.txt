@@ -1,14 +1,13 @@
-i;
-j;
-starNum = 0;
-while i < 5
+def func(lhs)
 {
-    j = 0;
-    while j < 5
+    if(lhs == 0)
     {
-        starNum = starNum + 1;
-        j = j + 1;
-    };
-    i = i + 1;
+        0;
+    }
+    else
+    {
+        1 + func(lhs-1);
+    }
 };
-starNum
+func(5);
+

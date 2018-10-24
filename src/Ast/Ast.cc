@@ -19,6 +19,16 @@ namespace Ast
 
     variant<int, double> PrimaryNode::Eval() 
     {
+        if (pPostfix)
+        {
+            if (pToken)
+            {
+                auto ret = EvalDef(pToken->getValue(), pPostfix->GetArgs());
+                return ret;
+            }    
+            else 
+                assert(0);
+        }
         if (pToken)
         {
             switch (pToken->getType())
@@ -42,12 +52,13 @@ namespace Ast
         }
         else if (pExpr)
             return pExpr->Eval(); 
+        
         Assert(0, "Eval Primary error");        
     }
     
     bool PrimaryNode::isIdentifier() const
     {
-        if (pToken && pToken->getType() == Token::IDENTIFIER) 
+        if (pToken && pToken->getType() == Token::IDENTIFIER && !pPostfix) 
             return true;
         return false;
     }
@@ -84,16 +95,16 @@ namespace Ast
         if (isInt)
         {
             if (pToken && pToken->getType() == Token::SUB)
-                return 0 - std::get<int>(pPrimary->Eval());
+                return 0 - std::get<int>(ret);
             else    
-                return std::get<int>(pPrimary->Eval());
+                return ret;
         }
         else
         {
             if (pToken && pToken->getType() == Token::SUB)
-                return 0 - std::get<double>(pPrimary->Eval());
+                return 0 - std::get<double>(ret);
             else    
-                return std::get<double>(pPrimary->Eval());
+                return ret;
         }
         
     }
@@ -346,9 +357,9 @@ namespace Ast
             return pStatement->Eval();
         if (!statementList.empty())
         {
-            if (pStatement) 
-                pStatement->Eval();
             auto ret = variant<int, double>{};
+            if (pStatement) 
+                ret = pStatement->Eval();
             for (auto& i : statementList)
                 if (i)
                     ret = i->Eval();
@@ -457,6 +468,9 @@ namespace Ast
     variant<int, double> ProgramNode::Eval()
     {
         auto ret = variant<int, double>{0};
+        for (auto& i : defList)
+            if (i)
+                i->Definite();
         for (auto& i : statementList)
             if (i)
                 ret = i->Eval();

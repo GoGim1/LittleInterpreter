@@ -90,6 +90,4 @@ TEST(AstFunc, OldNodeDump)
     ASSERT_EQ(pProgram1->Dump(), R"TEST(def func(i, i){3+-id}
 def func(i, i){3+-id}
 3+-id;)TEST");
-    
-    
 }
