@@ -20,7 +20,9 @@ target_link_libraries(AstTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
 add_executable(ParserTest 
                 ../src/Lexer.cc
                 ../src/Ast/Ast.cc
-                ../src/Parser.cc
+                ../src/Ast/AstFunc.cc
+                ../src/Parser/Parser.cc
+                ../src/Parser/ParserFunc.cc
                 ../src/Environment.cc
                 ../src/Error.cc
                 ParserTest.cc 
@@ -30,7 +32,9 @@ target_link_libraries(ParserTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
 add_executable(EnvironmentTest 
                 ../src/Lexer.cc
                 ../src/Ast/Ast.cc
-                ../src/Parser.cc
+                ../src/Ast/AstFunc.cc
+                ../src/Parser/Parser.cc
+                ../src/Parser/ParserFunc.cc
                 ../src/Environment.cc
                 ../src/Error.cc
                 EnvironmentTest.cc 
@@ -44,3 +48,14 @@ add_executable(AstFuncTest
                 ../src/Ast/Ast.cc
                 ../src/Ast/AstFunc.cc)
 target_link_libraries(AstFuncTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(ParserFuncTest 
+                ParserFuncTest.cc
+                ../src/Lexer.cc
+                ../src/Parser/Parser.cc
+                ../src/Parser/ParserFunc.cc
+                ../src/Error.cc
+                ../src/Environment.cc
+                ../src/Ast/Ast.cc
+                ../src/Ast/AstFunc.cc)
+target_link_libraries(ParserFuncTest gtest gtest_main ${CMAKE_THREAD_LIBS_INIT})

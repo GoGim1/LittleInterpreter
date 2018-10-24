@@ -28,6 +28,14 @@ namespace Parse
         SimplePtr       ParseSimple();
         StatementPtr    ParseStatement();
         ProgramPtr      ParseProgram();
+         
+        ParamPtr        ParseParam();
+        ParamsPtr       ParseParams();
+        ParamListPtr    ParseParamList();
+        DefPtr          ParseDef();
+        ArgsPtr         ParseArgs();
+        PostfixPtr      ParsePostfix();
+
         void            RunParser();
         const string    Dump() const;
         void            Eval() const;

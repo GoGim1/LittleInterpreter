@@ -235,6 +235,5 @@ TEST(Ast, RuntimeError)
             Env.clear();
         HandleEnd
     }
-
 }
 

@@ -4,33 +4,23 @@ namespace Parse
 {
     PrimaryPtr Parser::ParsePrimary()
     {
-         //Print("ParsePrimary");
+        ExprPtr pExpr = nullptr;
+        TokenPtr pToken = nullptr;
+        PostfixPtr pPostfix = nullptr;
+
         auto t = NextToken();
-        //Print(t.Dump());
         if (t.getType() == Token::LBRACKET)
         {
             t = PeekToken();
-            auto pParseExpr = ParseExpr();
-            if (!pParseExpr)
+            pExpr = ParseExpr();
+            if (!pExpr)
             {
                 AddError(Error("PrimaryNode error: parsing Expr error.", t.getPosX(), t.getPosY()));
                 return nullptr;
             }
-            PrimaryPtr ret = MakePrimaryPtr(pParseExpr, nullptr);
-            //Print(ret->Dump());
-            t = NextToken();
-            if (t.getType() != Token::RBRACKET)
-            {
-                AddError(Error("PrimaryNode error: missing \")\".", t.getPosX(), t.getPosY()));
-                return nullptr;
-            }
-            return ret;
         }                     
         else if (t.getType() == Token::IDENTIFIER || t.getType() == Token::FLOAT ||t.getType() == Token::INTEGER)
-        {
-            auto ret = MakePrimaryPtr(nullptr, MakeTokenPtr(t));
-            return ret;
-        }    
+            pToken = MakeTokenPtr(t);
         else 
         {
             stringstream tmp;
@@ -38,7 +28,25 @@ namespace Parse
             AddError(Error(tmp.str(), t.getPosX(), t.getPosY()));
             return nullptr;
         }
-        
+        if (pExpr)
+        {
+            t = NextToken();
+            if (t.getType() != Token::RBRACKET)
+            {
+                AddError(Error("PrimaryNode error: missing \")\".", t.getPosX(), t.getPosY()));
+                return nullptr;
+            }
+        }
+
+        if (PeekToken().getType() == Token::LBRACKET)
+        {
+            pPostfix = ParsePostfix();
+            if (!pPostfix)
+                assert(0);
+        }
+
+        PrimaryPtr ret = MakePrimaryPtr(pExpr, pToken, pPostfix);
+        return ret;
     }
 
     FactorPtr Parser::ParseFactor()
@@ -276,14 +284,26 @@ namespace Parse
     SimplePtr Parser::ParseSimple()
     {
         //Print("ParseSimple");
+        ExprPtr pExpr = nullptr;
+        ArgsPtr pArgs = nullptr;
+
         auto simpleFirstToken = PeekToken();
-        auto pParseExpr = ParseExpr();
-        if (!pParseExpr) 
+        pExpr = ParseExpr();
+        if (!pExpr) 
         {
             AddError(Error("SimpleNode error: parsing Expr error.", simpleFirstToken.getPosX(), simpleFirstToken.getPosY()));
             return nullptr;
         }
-        return MakeSimplePtr(pParseExpr);
+
+        auto peekTokenType = PeekToken().getType();
+        if (peekTokenType == Token::SUB || peekTokenType == Token::PLUS || peekTokenType == Token::IDENTIFIER || 
+                peekTokenType == Token::FLOAT || peekTokenType == Token::INTEGER || peekTokenType == Token::LBRACKET)
+        {
+            pArgs = ParseArgs();
+            if (!pArgs)
+                assert(0);
+        }
+        return MakeSimplePtr(pExpr, pArgs);
     }
 
     StatementPtr Parser::ParseStatement()
@@ -370,13 +390,26 @@ namespace Parse
                 ret->ListHandler(nullptr);
             else
             {
-                auto pParseStatement = ParseStatement();
-                if (!pParseStatement)
+                if (PeekToken().getType() == Token::DEF)
                 {
-                    AddError(Error("ProgramNode error: parsing Statement list error.", peek.getPosX(), peek.getPosY()));
-                    return nullptr;
+                    auto pParseDef = ParseDef();
+                    if (!pParseDef)
+                    {
+                       assert(0);
+                    }
+                    ret->DefListHandler(pParseDef);
                 }
-                ret->ListHandler(pParseStatement);
+                else 
+                {
+                    auto pParseStatement = ParseStatement();
+                    if (!pParseStatement)
+                    {
+                        AddError(Error("ProgramNode error: parsing Statement list error.", peek.getPosX(), peek.getPosY()));
+                        return nullptr;
+                    }
+                    ret->ListHandler(pParseStatement);
+                }
+                
                 if (PeekToken().getType() != Token::SEMICOLON && PeekToken().getType() != Token::_EOF)
                 {
                     AddError(Error(R"(ProgramNode error: Statement list should be separated by ";".)", PeekToken().getPosX(), PeekToken().getPosY()));

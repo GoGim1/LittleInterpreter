@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 include_directories(src)
 include_directories(src/Ast)
+include_directories(src/Parser)
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Release")
         add_subdirectory(src)
