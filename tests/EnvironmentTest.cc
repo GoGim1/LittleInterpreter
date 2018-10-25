@@ -138,6 +138,14 @@ func(1);
         parser.RunParser();   
         ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 1);
     }
+    {
+        RunLexer(R"TEST(def func(lhs, rhs){if(lhs >= rhs){lhs}else{rhs}};
+func(13.5, 2);
+)TEST");
+        Parser parser; 
+        parser.RunParser();   
+        ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 13.5);
+    }
     // Simple
 
 }
@@ -181,8 +189,12 @@ TEST(Ast, RuntimeError)
         RunLexer("a;b = a;");
         Parser parser; 
         parser.RunParser();
-        ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 0.0));
-        Env.clear();
+        HandleTry
+            parser.Eval();   
+        HandleCatch  
+            ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: "a" undefined.)");
+            Env.clear();
+        HandleEnd
     }
     {
         RunLexer("1 = 3");
@@ -196,18 +208,7 @@ TEST(Ast, RuntimeError)
         HandleEnd
     }
     {
-        RunLexer("a;1 = a");
-        Parser parser; 
-        parser.RunParser();  
-        HandleTry
-            parser.Eval();     
-        HandleCatch
-            ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: can not assign to r-value.)");
-            Env.clear();
-        HandleEnd
-    }
-    {
-        RunLexer("a;2 + a = a");
+        RunLexer("a = 0;1 = a");
         Parser parser; 
         parser.RunParser();  
         HandleTry
@@ -218,13 +219,24 @@ TEST(Ast, RuntimeError)
         HandleEnd
     }
     {
-        RunLexer("a;a = 2/a");
+        RunLexer("a = 0;2 + a = a");
         Parser parser; 
         parser.RunParser();  
         HandleTry
             parser.Eval();     
         HandleCatch
-            ASSERT_STREQ(e.what(), R"([Line 0, 7]: Runtime error: denominator of div operator can't be zero.)");
+            ASSERT_STREQ(e.what(), R"([Line 0, 12]: Runtime error: can not assign to r-value.)");
+            Env.clear();
+        HandleEnd
+    }
+    {
+        RunLexer("a = 0;a = 2/a");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 11]: Runtime error: denominator of div operator can't be zero.)");
             Env.clear();
         HandleEnd
     }
@@ -244,6 +256,18 @@ TEST(Ast, RuntimeError)
 TEST(Ast, FuncRuntimeError)
 {
     {
+        RunLexer("def func(lhs){func(lhs)};func(1);");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 14]: Runtime error: the depth of stack is out of range.)");
+            Env.clear();
+            DefTableClean();
+        HandleEnd
+    }
+    {
         RunLexer("def fun(){};fun(1)");
         Parser parser; 
         parser.RunParser();  
@@ -262,9 +286,22 @@ TEST(Ast, FuncRuntimeError)
         HandleTry
             parser.Eval();     
         HandleCatch
-            //ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: undefined function "fun".)");
+            ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: undefined function "fun".)");
             Env.clear();
             DefTableClean();
         HandleEnd
     }
+    {
+        RunLexer("def func(lhs){lhs};func(p);");
+        Parser parser; 
+        parser.RunParser();  
+        HandleTry
+            parser.Eval();     
+        HandleCatch
+            ASSERT_STREQ(e.what(), R"([Line 0, 24]: Runtime error: "p" undefined.)");
+            Env.clear();
+            DefTableClean();
+        HandleEnd
+    }
+   
 }

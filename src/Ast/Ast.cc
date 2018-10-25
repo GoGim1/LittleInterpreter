@@ -330,7 +330,17 @@ namespace Ast
             stackCalculate();
 
         auto ret = valStack.back();
-        return std::holds_alternative<NumValue>(ret) ? get<NumValue>(ret) : Env[get<0>(get<IdentifierValue>(ret))];
+        if (std::holds_alternative<NumValue>(ret)) 
+            return get<NumValue>(ret);
+        else 
+        {
+            const string& idName = get<0>(get<IdentifierValue>(ret));
+            if (Env.find(idName) != Env.end())
+                return Env[idName];
+            else 
+                throw Error("Runtime error: \"" + idName + "\" undefined.", get<1>(get<IdentifierValue>(ret)), get<2>(get<IdentifierValue>(ret)));
+        }
+            
     }
     
     void ExprNode::ListHandler(const TokenPtr& pTokenRhs, const FactorPtr& pFactorRhs)
@@ -388,9 +398,8 @@ namespace Ast
     {
         if (!pArgs)
             return pExpr->Eval();
-        // else 
-        //     auto ret = EvalDef(pToken->getValue(), pPostfix->GetArgs(), pToken->getPosX(), pToken->getPosY());
-        //     return ret;
+        else 
+            assert(0);
     }
 
     /*************************************************************
