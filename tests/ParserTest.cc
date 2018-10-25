@@ -580,7 +580,7 @@ TEST(Parser, Error)
 
 TEST(Parser, Eval)
 {
-    Env["id"] = 3.2;
+    DefineIdentifier("id", 3.2);
     {
         RunLexer("3;");
         Parser parser;

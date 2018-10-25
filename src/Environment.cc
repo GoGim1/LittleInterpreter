@@ -5,10 +5,56 @@ namespace Environment
 {
     using namespace Ast;
 
-    unordered_map<string, variant<int, double>>     Env;
-    unordered_map<string, DefPtr>                   defTable;
+    using idTlbType = unordered_map<string, variant<int, double>>;
+    using defTlbType = unordered_map<string, DefPtr>;
+    
+    vector<idTlbType>       identifierTable;
+    defTlbType              defTable;
 
     static int depth = 0;
+
+    bool IsIdentifierDefined(const string& name)
+    {
+        for (int i = identifierTable.size()-1; i>=0; i--)
+        {
+            if (identifierTable[i].find(name) != identifierTable[i].end())
+                return true;
+        }
+        return false;
+    }
+    const variant<int, double>& GetIdentifierVal(const string& name)
+    {
+        for (int i = identifierTable.size()-1; i>=0; i--)
+        {
+            if (identifierTable[i].find(name) != identifierTable[i].end())
+                return identifierTable[i][name];
+        }
+        assert(0);
+        return 0;
+    }
+
+    void DefineIdentifier(const string& name, const variant<int, double>& val)
+    {
+        if (identifierTable.empty())
+            NewNamespace();
+        identifierTable[identifierTable.size()-1][name] = val;
+    }
+
+    void IdentifierTableClean()
+    {
+        identifierTable.clear();
+        NewNamespace();
+    }
+
+    void NewNamespace()
+    {
+        identifierTable.push_back(idTlbType{});
+    }
+
+    void DeleteNamespace()
+    {
+        identifierTable.pop_back();
+    }
 
     void DefiniteFunc(const DefPtr& pDefRhs)
     {

@@ -39,9 +39,9 @@ namespace Ast
                 return std::stod(pToken->getValue());                        
             case Token::IDENTIFIER:
             {
-                auto value = Env.find(pToken->getValue()); 
-                if (value != Env.end())
-                    return value->second;
+                auto name = pToken->getValue();
+                if (IsIdentifierDefined(name))
+                    return GetIdentifierVal(name);
                 else 
                     throw Error("Runtime error: \""+ pToken->getValue() +"\" is undefined.", pToken->getPosX(), pToken->getPosY());
             }
@@ -187,11 +187,11 @@ namespace Ast
             if (!isNumValue) // rhsItemType is IdentifierValue 
             {
                 auto _IdentifierValue = get<IdentifierValue>(item);
-                if (Env.find(get<0>(_IdentifierValue)) == Env.end())   
+                if (!IsIdentifierDefined(get<0>(_IdentifierValue)))   
                     throw Error("Runtime error: \"" + get<0>(_IdentifierValue) + "\" undefined.", 
                         get<1>(_IdentifierValue), get<2>(_IdentifierValue));
                 else 
-                    rhsNumValue = Env[get<0>(_IdentifierValue)];
+                    rhsNumValue = GetIdentifierVal(get<0>(_IdentifierValue)); 
             }
             else // rhsItemType is NumValue 
                 rhsNumValue = get<NumValue>(item);
@@ -216,16 +216,16 @@ namespace Ast
             if (!isNumValue) // lhsItemType is IdentifierValue 
             {
                 auto _IdentifierValue = get<IdentifierValue>(item);
-                if (Env.find(get<0>(_IdentifierValue)) == Env.end())  
+                if (!IsIdentifierDefined(get<0>(_IdentifierValue)))  
                 {
                     if (isAssign)
-                        Env[get<0>(_IdentifierValue)] = NumValue{0};
+                        DefineIdentifier(get<0>(_IdentifierValue), NumValue{0});
                     else 
                         throw Error("Runtime error: \"" + get<0>(_IdentifierValue) + "\" undefined.", 
                             get<1>(_IdentifierValue), get<2>(_IdentifierValue));
                 } 
                 else 
-                    lhsNumValue = Env[get<0>(_IdentifierValue)];
+                    lhsNumValue = GetIdentifierVal(get<0>(_IdentifierValue));
             }
             else // lhsItemType is NumValue 
             {
@@ -293,12 +293,12 @@ namespace Ast
             case Token::ASSIGN:   
                 if (isRhsInt)
                 {
-                    Env[get<0>(get<IdentifierValue>(item))] = (int)rhs;
+                    DefineIdentifier(get<0>(get<IdentifierValue>(item)), (int)rhs);
                     valStack.push_back((int)rhs);
                 }
                 else 
                 {
-                    Env[get<0>(get<IdentifierValue>(item))] = rhs;
+                    DefineIdentifier(get<0>(get<IdentifierValue>(item)), rhs);
                     valStack.push_back(rhs); 
                 }
                 break;
@@ -335,8 +335,8 @@ namespace Ast
         else 
         {
             const string& idName = get<0>(get<IdentifierValue>(ret));
-            if (Env.find(idName) != Env.end())
-                return Env[idName];
+            if (IsIdentifierDefined(idName))
+                return GetIdentifierVal(idName);
             else 
                 throw Error("Runtime error: \"" + idName + "\" undefined.", get<1>(get<IdentifierValue>(ret)), get<2>(get<IdentifierValue>(ret)));
         }

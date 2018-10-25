@@ -1,0 +1,19 @@
+def fun(lhs) 
+{ 
+    if (lhs == 0)
+    {
+        0
+    }
+    else
+    {
+        if (lhs == 1)
+        {
+            1
+        }
+        else
+        {
+            fun(lhs-1)+fun(lhs-2)
+        }
+    }
+};
+fun(10);

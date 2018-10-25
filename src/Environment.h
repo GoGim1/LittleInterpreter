@@ -15,8 +15,13 @@ namespace Environment
     using std::shared_ptr;
     using std::vector;
 
-    extern unordered_map<string, variant<int, double>>  Env;
+    extern bool                         IsIdentifierDefined(const string&);
+    extern const variant<int, double>&  GetIdentifierVal(const string&);
+    extern void                         IdentifierTableClean();
+    extern void                         DefineIdentifier(const string&, const variant<int, double>&);
+    extern void                         NewNamespace();
+    extern void                         DeleteNamespace();
     
-    extern variant<int, double> EvalDef(const string&, const vector<variant<int, double>>&, int, int);
-    extern void                 DefTableClean();
+    extern variant<int, double>         EvalDef(const string&, const vector<variant<int, double>>&, int, int);
+    extern void                         DefTableClean();
 } // Environment

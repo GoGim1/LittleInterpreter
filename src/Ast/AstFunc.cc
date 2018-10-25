@@ -101,16 +101,18 @@ namespace Ast
         if (args.size() != paramList.size())    
             throw Error("Runtime error: the number of args does not match the number of params.", posX, posY);
         
+        NewNamespace();
         for (size_t i = 0; i < args.size(); i++)
         {
             bool isInt = std::holds_alternative<int>(args[i]);
             if (isInt)
-                Env[paramList[i]] = get<int>(args[i]); 
+                DefineIdentifier(paramList[i], get<int>(args[i]));
             else 
-                Env[paramList[i]] = get<double>(args[i]); 
+                DefineIdentifier(paramList[i], get<double>(args[i]));
         }
-
-        return pBlock->Eval();
+        auto ret = pBlock->Eval();
+        DeleteNamespace();
+        return ret;
     }
 
     const string& DefNode::GetFunctionName() const

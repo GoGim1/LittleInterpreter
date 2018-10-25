@@ -10,7 +10,8 @@ using namespace Ast;
 
 TEST(Ast, EnvNormal)
 {
-    Env["double"] = 1.3; Env["int"] = 1;
+    DefineIdentifier("double", 1.3);
+    DefineIdentifier("int", 1);
     {
         // Primary Factor test
         auto pToken1 = MakeTokenPtr(Token::IDENTIFIER, "double");
@@ -58,35 +59,35 @@ TEST(Ast, Env)
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 1.0));
-        Env.clear();
+        IdentifierTableClean();
     }
     {
         RunLexer("a = 1; a");
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 1.0));
-        Env.clear();
+        IdentifierTableClean();
     }
     {
         RunLexer("a = 1; a = a + 1; ");
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.0));
-        Env.clear();
+        IdentifierTableClean();
     }  
     {
         RunLexer("a = 1; b = 1.2; a + b");
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.2));
-        Env.clear();
+        IdentifierTableClean();
     }    
     {
         RunLexer("a = 1; b = 1.2; c = a + b");
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 2.2));
-        Env.clear();
+        IdentifierTableClean();
     }
     {
         RunLexer(R"(
@@ -110,7 +111,7 @@ even + odd;
         Parser parser; 
         parser.RunParser();       
         ASSERT_TRUE(IsAlmostEqual(GET(parser.EvalValue()), 9.0));
-        Env.clear();
+        IdentifierTableClean();
     }
 }
 
@@ -150,6 +151,18 @@ func(13.5, 2);
 
 }
 
+TEST(Env, Namespace)
+{
+    {
+        RunLexer(R"TEST(def fun(lhs) {if (lhs == 0){0}else{if (lhs == 1){1}else{fun(lhs-1)+fun(lhs-2)}}};
+fun(10);
+)TEST");
+        Parser parser; 
+        parser.RunParser();   
+        ASSERT_FLOAT_EQ(GET(parser.EvalValue()), 55);
+    }   
+}
+
 TEST(Ast, RuntimeError)
 {
     {
@@ -160,7 +173,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: "b" undefined.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -171,7 +184,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: "a" undefined.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -182,7 +195,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 4]: Runtime error: "b" undefined.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -193,7 +206,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();   
         HandleCatch  
             ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: "a" undefined.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -204,7 +217,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 2]: Runtime error: can not assign to r-value.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -215,7 +228,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 8]: Runtime error: can not assign to r-value.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -226,7 +239,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 12]: Runtime error: can not assign to r-value.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -237,7 +250,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 11]: Runtime error: denominator of div operator can't be zero.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
     {
@@ -248,7 +261,7 @@ TEST(Ast, RuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 11]: Runtime error: parameters of mod operator can't be double.)");
-            Env.clear();
+            IdentifierTableClean();
         HandleEnd
     }
 }
@@ -263,7 +276,7 @@ TEST(Ast, FuncRuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 14]: Runtime error: the depth of stack is out of range.)");
-            Env.clear();
+            IdentifierTableClean();
             DefTableClean();
         HandleEnd
     }
@@ -275,7 +288,7 @@ TEST(Ast, FuncRuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 12]: Runtime error: the number of args does not match the number of params.)");
-            Env.clear();
+            IdentifierTableClean();
             DefTableClean();
         HandleEnd
     }
@@ -287,7 +300,7 @@ TEST(Ast, FuncRuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 0]: Runtime error: undefined function "fun".)");
-            Env.clear();
+            IdentifierTableClean();
             DefTableClean();
         HandleEnd
     }
@@ -299,7 +312,7 @@ TEST(Ast, FuncRuntimeError)
             parser.Eval();     
         HandleCatch
             ASSERT_STREQ(e.what(), R"([Line 0, 24]: Runtime error: "p" undefined.)");
-            Env.clear();
+            IdentifierTableClean();
             DefTableClean();
         HandleEnd
     }
